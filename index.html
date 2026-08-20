@@ -11,7 +11,6 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
     <style>
-        /* টেলিগ্রাম হেডারের নিচে কন্টেন্ট নামানোর জন্য padding-top যোগ করা হয়েছে */
         body { background-color: #0b1320; color: white; font-family: sans-serif; margin: 0; padding: 50px 0 0 0; height: 100vh; display: flex; flex-direction: column; box-sizing: border-box; }
         .content { flex: 1; padding: 20px; display: none; overflow-y: auto; }
         .content.active { display: block; animation: iOSFade 0.35s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
@@ -206,17 +205,17 @@
     <!-- সাপোর্ট সেকশন -->
     <div id="support" class="content">
         <div class="support-title">সাহায্য প্রয়োজন?</div>
-        <div class="support-card">
+        <div class="support-card" onclick="openSupportLink('whatsapp')" style="cursor: pointer;">
             <div class="support-icon-circle">💬</div>
             <div class="support-heading">হোয়াটসঅ্যাপ সাপোর্ট</div>
             <div class="support-desc">যেকোনো সমস্যা সমাধানের জন্য আমাদের হোয়াটসঅ্যাপে যোগাযোগ করুন।</div>
-            <a id="whatsappLink" href="#" target="_blank" class="support-link-btn">WhatsApp Support</a>
+            <div class="support-link-btn">WhatsApp Support</div>
         </div>
-        <div class="support-card telegram">
+        <div class="support-card telegram" onclick="openSupportLink('telegram')" style="cursor: pointer;">
             <div class="support-icon-circle">✈️</div>
             <div class="support-heading">টেলিগ্রাম সাপোর্ট</div>
             <div class="support-desc">সরাসরি টেলিগ্রামের মাধ্যমে আমাদের সাথে যোগাযোগ করুন।</div>
-            <a id="telegramLink" href="#" target="_blank" class="support-link-btn">Telegram Support</a>
+            <div class="support-link-btn">Telegram Support</div>
         </div>
     </div>
 
@@ -315,7 +314,6 @@
             }
         }
 
-        // ইউজারের নাম ও ছবি UI-তে এবং ফায়ারবেসে আপডেট করা
         document.getElementById('userName').innerText = fullName;
         if (userPhotoUrl) {
             let avatarImg = document.getElementById('userAvatarImg');
@@ -324,7 +322,6 @@
             document.getElementById('defaultAvatarIcon').style.display = 'none';
         }
 
-        // ফায়ারবেসে ইউজারের বেসিক ইনফো সেভ করে রাখা
         db.ref('users/' + userId).update({
             firstName: fullName,
             photoUrl: userPhotoUrl
@@ -335,6 +332,26 @@
         let currentFilterStatus = 'approved';
         let currentUserData = {};
         let currentConfigData = {};
+
+        // ফিক্সড সাপোর্ট লিংকগুলো এখানে সরাসরি সেট করে দেওয়া হলো যাতে কোনো এরর না আসে
+        let supportLinks = {
+            whatsapp: "https://wa.me/8801320714547",
+            telegram: "https://t.me/omorpubgm"
+        };
+
+        function openSupportLink(type) {
+            let url = type === 'whatsapp' ? supportLinks.whatsapp : supportLinks.telegram;
+            if (window.Telegram && window.Telegram.WebApp) {
+                if (type === 'telegram') {
+                    // টেলিগ্রাম ইউজারনেম সরাসরি অ্যাপে ওপেন করার জন্য
+                    window.Telegram.WebApp.openTelegramLink(url);
+                } else {
+                    window.Telegram.WebApp.openLink(url);
+                }
+            } else {
+                window.open(url, '_blank');
+            }
+        }
 
         function initFirebaseSync() {
             db.ref('users/' + userId).on('value', (snapshot) => {
@@ -426,13 +443,6 @@
 
             db.ref('config').on('value', (snapshot) => {
                 currentConfigData = snapshot.val() || {};
-                
-                if (currentConfigData.whatsappLink) {
-                    document.getElementById('whatsappLink').href = currentConfigData.whatsappLink;
-                }
-                if (currentConfigData.telegramLink) {
-                    document.getElementById('telegramLink').href = currentConfigData.telegramLink;
-                }
                 
                 if (currentConfigData.referralBonus) {
                     document.getElementById('referBonusText').innerText = currentConfigData.referralBonus + ' TK';
@@ -630,7 +640,7 @@
                     alert("ত্রুটি: " + result.message);
                 }
             } catch (error) {
-                alert("সার্ভার কানেکশন ত্রুটি!");
+                alert("সার্ভার কানেকশন ত্রুটি!");
             } finally {
                 isProcessingWithdraw = false;
                 if(submitBtn) {
@@ -682,7 +692,7 @@
             document.getElementById('taskModal').style.display = 'flex';
         }
 
-        function closeModal() { document.getElementById('taskModal').style.display = 'none'; }
+        function closeModal() { document.getElementById('taskModal'].style.display = 'none'; }
         function openWithdrawModal() { document.getElementById('withdrawModal').style.display = 'flex'; }
         function closeWithdrawModal() { document.getElementById('withdrawModal').style.display = 'none'; }
         function openHistoryModal() { document.getElementById('historyModal').style.display = 'flex'; }
