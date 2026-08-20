@@ -13,7 +13,8 @@
 
     <style>
         body { background-color: #0b1320; color: white; font-family: sans-serif; margin: 0; padding: 0; height: 100vh; display: flex; flex-direction: column; }
-        .content { flex: 1; padding: 20px; display: none; overflow-y: auto; }
+        /* প্যাডিং ওপর থেকে বাড়িয়ে দেওয়া হলো যাতে টেলিগ্রামের হেডার বা ক্যামেরা থেকে দূরে থাকে */
+        .content { flex: 1; padding: 45px 20px 20px 20px; display: none; overflow-y: auto; }
         .content.active { display: block; animation: iOSFade 0.35s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
         @keyframes iOSFade { 0% { opacity: 0; transform: scale(0.96) translateY(12px); } 100% { opacity: 1; transform: scale(1) translateY(0); } }
         
@@ -47,8 +48,7 @@
         .badge.rejected { background: rgba(239, 68, 68, 0.15); color: #ef4444; }
         .badge.pending { background: rgba(245, 158, 11, 0.15); color: #f59e0b; }
 
-        /* এখানে মার্জিন বাড়িয়ে একটু নিচে নামিয়ে দেওয়া হলো */
-        .task-header { text-align: center; margin-top: 15px; margin-bottom: 25px; }
+        .task-header { text-align: center; margin-bottom: 25px; }
         .task-top-icon { width: 45px; height: 45px; background: rgba(255, 77, 77, 0.15); border-radius: 12px; display: flex; align-items: center; justify-content: center; margin: 0 auto 10px auto; color: #ff4d4d; font-size: 20px; }
         .task-main-title { font-size: 1.3em; font-weight: bold; margin-bottom: 5px; }
         .task-sub-title { font-size: 0.8em; color: #8b9bb4; }
