@@ -11,18 +11,61 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
     <style>
-        body { background-color: #0b1320; color: white; font-family: sans-serif; margin: 0; padding: 50px 0 0 0; height: 100vh; display: flex; flex-direction: column; box-sizing: border-box; }
-        .content { flex: 1; padding: 20px; display: none; overflow-y: auto; }
-        .content.active { display: block; animation: iOSFade 0.35s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
-        @keyframes iOSFade { 0% { opacity: 0; transform: scale(0.96) translateY(12px); } 100% { opacity: 1; transform: scale(1) translateY(0); } }
+        * { box-sizing: border-box; }
+        body { background-color: #0b1320; color: white; font-family: sans-serif; margin: 0; padding: 0; width: 100vw; height: 100vh; display: flex; flex-direction: column; overflow: hidden; position: relative; }
+        
+        .content { position: absolute; top: 0; left: 0; width: 100%; height: calc(100vh - 65px); padding: 20px; padding-top: 60px; display: none; overflow-y: auto; background-color: #0b1320; }
+        .content.active { display: block; z-index: 10; }
         
         .header { display: flex; align-items: center; gap: 12px; margin-bottom: 20px; }
         .avatar { width: 45px; height: 45px; background-color: #00d4ff; border-radius: 50%; object-fit: cover; border: 2px solid #00d4ff; }
-        .balance-card { background: linear-gradient(to right, #00b09b, #00d4ff); padding: 20px; border-radius: 15px; margin-bottom: 20px; text-align: center; }
+        
+        .balance-card { background: linear-gradient(to right, #00b09b, #00d4ff); padding: 20px; border-radius: 15px; margin-bottom: 15px; text-align: center; }
         .balance-card .label { font-size: 0.9em; color: #fff; margin-bottom: 5px; }
         .balance-card .value { font-size: 1.8em; font-weight: bold; margin-top: 5px; }
 
-        .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
+        /* রানিং নোটিশ ঘর */
+        .notice-ticker-box { 
+            background: #162032; 
+            border: 1px solid #1f2c42; 
+            border-radius: 10px; 
+            padding: 10px 15px; 
+            margin-bottom: 20px; 
+            width: 100%;
+            overflow: hidden; 
+            position: relative;
+        }
+        .notice-icon { 
+            color: #f59e0b; 
+            font-size: 1.1em; 
+            position: absolute;
+            left: 15px;
+            top: 50%;
+            transform: translateY(-50%);
+            z-index: 5;
+            background: #162032;
+            padding-right: 5px;
+        }
+        .ticker-wrap { 
+            width: 100%; 
+            overflow: hidden; 
+            white-space: nowrap; 
+            padding-left: 30px; 
+        }
+        .ticker-text { 
+            display: inline-block; 
+            white-space: nowrap; 
+            animation: tickerAnim 15s linear infinite; 
+            color: #cbd5e1; 
+            font-size: 0.9em; 
+            font-weight: 500; 
+        }
+        @keyframes tickerAnim { 
+            0% { transform: translateX(100%); } 
+            100% { transform: translateX(-100%); } 
+        }
+
+        .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 20px; }
         .card { background-color: #1a2436; padding: 20px; border-radius: 15px; }
         .label { font-size: 0.9em; color: #aaa; }
         .value { font-size: 1.2em; font-weight: bold; margin-top: 5px; }
@@ -50,7 +93,7 @@
         .task-main-title { font-size: 1.3em; font-weight: bold; margin-bottom: 5px; }
         .task-sub-title { font-size: 0.8em; color: #8b9bb4; }
 
-        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 100; justify-content: center; align-items: center; }
+        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 1000; justify-content: center; align-items: center; }
         .modal-content { background: #1a2436; width: 90%; max-width: 400px; padding: 20px; border-radius: 20px; position: relative; max-height: 90vh; overflow-y: auto; }
         .close-btn { position: absolute; top: 10px; right: 15px; cursor: pointer; font-size: 20px; color: #aaa; }
         .radio-option { background: #0b1320; padding: 12px 15px; border-radius: 12px; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center; font-size: 0.9em; }
@@ -82,25 +125,13 @@
         .btn-copy-pink { background: #db2777; }
         .btn-share-green { background: #059669; }
 
-        .navbar { background-color: #131c2d; display: flex; justify-content: space-around; padding: 12px 15px; border-top: 1px solid #1f2c42; }
+        .navbar { position: fixed; bottom: 0; left: 0; width: 100%; height: 65px; background-color: #131c2d; display: flex; justify-content: space-around; align-items: center; padding: 5px 0; border-top: 1px solid #1f2c42; z-index: 1000; }
         .nav-item { text-align: center; font-size: 0.75em; color: #8b9bb4; cursor: pointer; }
         .nav-item.active { color: #00d4ff; }
         .sell-btn { width: 100%; padding: 16px; border: none; border-radius: 12px; color: white; font-weight: 600; cursor: pointer; margin-bottom: 15px; display: flex; align-items: center; justify-content: center; gap: 8px; }
-
-        #announcementModal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); z-index: 999; justify-content: center; align-items: center; }
-        .announcement-box { background: #1a2436; width: 85%; max-width: 350px; padding: 25px; border-radius: 20px; text-align: center; border: 1px solid #1f2c42; }
     </style>
 </head>
 <body>
-
-    <div id="announcementModal">
-        <div class="announcement-box">
-            <div style="font-size: 35px; margin-bottom: 10px;">⚠️</div>
-            <h3 style="margin-top:0; color: #ff4d4d; font-size: 1.2em;">জরুরী ঘোষণা</h3>
-            <p id="announcementText" style="color: #cbd5e1; font-size: 0.9em; line-height: 1.5; margin-bottom: 20px;"></p>
-            <button class="submit-btn" onclick="closeAnnouncement()" style="margin-top:0;">ঠিক আছে</button>
-        </div>
-    </div>
 
     <!-- হোম সেকশন -->
     <div id="home" class="content active">
@@ -109,10 +140,20 @@
             <div class="avatar" id="defaultAvatarIcon" style="display:flex; align-items:center; justify-content:center;"><i class="fas fa-user" style="color:#0b1320;"></i></div>
             <div id="userName" style="font-weight: bold; font-size: 1.1em;">Telegram User</div>
         </div>
+
         <div class="balance-card">
             <div class="label">মোট ব্যালেন্স</div>
             <div class="value" id="totalBalance">0 TK</div>
         </div>
+
+        <!-- রানিং নোটিশ ঘর -->
+        <div id="noticeTickerBox" class="notice-ticker-box" style="display: none;">
+            <div class="notice-icon"><i class="fas fa-bullhorn"></i></div>
+            <div class="ticker-wrap">
+                <div id="tickerTextContent" class="ticker-text"></div>
+            </div>
+        </div>
+
         <div class="grid">
             <div class="card" onclick="switchNav('task-history'); filterTasks('approved');" style="cursor: pointer;">
                 <div class="label">এপ্রুভ টাস্ক</div>
@@ -185,7 +226,7 @@
             </div>
             <div class="input-group">
                 <label class="input-label">একাউন্ট নাম্বার</label>
-                <input type="text" id="withdrawNumber" placeholder="01XXXXXXXXX">
+                <input type="text" id="withdrawNumber" placeholder="01XXXXXXXXX" onfocus="showConfirmPopup()">
             </div>
             <button class="submit-btn" onclick="requestWithdraw()">অনুরোধ পাঠান</button>
         </div>
@@ -260,7 +301,7 @@
                 <div class="wallet-icon-box">📋</div>
                 <div class="wallet-card-title">কাজ</div>
             </div>
-            <div class="wallet-card" onclick="switchNav('refer')">
+            <div class="wallet-card" id="walletReferCard" onclick="switchNav('refer')">
                 <div class="wallet-icon-box">👥</div>
                 <div class="wallet-card-title">রেফার</div>
             </div>
@@ -272,11 +313,11 @@
     </div>
 
     <!-- ন্যাভিগেশন বার -->
-    <div class="navbar">
+    <div class="navbar" id="bottomNavbar">
         <div class="nav-item active" onclick="showContent('home', this)"><span style="font-size:18px;">🏠</span><br>হোম</div>
         <div class="nav-item" onclick="showContent('task', this)"><span style="font-size:18px;">📋</span><br>কাজ</div>
         <div class="nav-item" onclick="showContent('support', this)"><span style="font-size:18px;">🎧</span><br>সাপোর্ট</div>
-        <div class="nav-item" onclick="showContent('refer', this)"><span style="font-size:18px;">👥</span><br>রেফার</div>
+        <div class="nav-item" id="navReferItem" onclick="showContent('refer', this)"><span style="font-size:18px;">👥</span><br>রেফার</div>
         <div class="nav-item" onclick="showContent('wallet', this)"><span style="font-size:18px;">💳</span><br>ওয়ালেট</div>
     </div>
 
@@ -356,10 +397,7 @@
                 
                 document.getElementById('totalBalance').innerText = (currentUserData.balance || 0) + ' TK';
                 document.getElementById('walletBalance').innerText = (currentUserData.balance || 0) + ' TK';
-                document.getElementById('approvedCount').innerText = currentUserData.approvedTasksCount || 0;
-                document.getElementById('rejectedCount').innerText = currentUserData.rejectedTasksCount || 0;
-                document.getElementById('pendingCount').innerText = currentUserData.pendingTasksCount || 0;
-
+                
                 checkAndResetDailyLimit(currentUserData);
             });
 
@@ -405,23 +443,44 @@
                 const tasksObj = snapshot.val() || {};
                 currentTasksList = [];
                 let validTodayCount = 0;
+                let approvedCount = 0;
+                let rejectedCount = 0;
+                let pendingCount = 0;
                 const todayStr = new Date().toDateString();
 
                 for (let key in tasksObj) {
                     const task = { id: key, ...tasksObj[key] };
                     currentTasksList.push(task);
 
+                    if (task.status === 'approved') {
+                        approvedCount++;
+                    } else if (task.status === 'rejected') {
+                        rejectedCount++;
+                    } else {
+                        pendingCount++;
+                    }
+
                     if (task.timestamp) {
                         const taskDate = new Date(task.timestamp).toDateString();
+                        // শুধুমাত্র আজকের এবং রিজেক্টেড নয় এমন কাজগুলোই (approved + pending) লিমিটে যোগ হবে
                         if (taskDate === todayStr && task.status !== 'rejected') {
                             validTodayCount++;
                         }
                     }
                 }
 
+                document.getElementById('approvedCount').innerText = approvedCount;
+                document.getElementById('rejectedCount').innerText = rejectedCount;
+                document.getElementById('pendingCount').innerText = pendingCount;
+                document.getElementById('dailyLimitDisplay').innerText = `${validTodayCount}/${currentConfigData.dailyTaskLimit || 10}`;
+
+                // ডাটাবেজে সরাসরি সঠিক কাউন্ট আপডেট করে দেওয়া হলো যাতে কোনো অসঙ্গতি না থাকে
                 db.ref('users/' + userId).update({
                     dailyTaskCount: validTodayCount,
-                    lastTaskDate: todayStr
+                    lastTaskDate: todayStr,
+                    approvedTasksCount: approvedCount,
+                    rejectedTasksCount: rejectedCount,
+                    pendingTasksCount: pendingCount
                 });
 
                 filterTasks(currentFilterStatus);
@@ -441,6 +500,24 @@
             db.ref('config').on('value', (snapshot) => {
                 currentConfigData = snapshot.val() || {};
                 
+                const isReferEnabled = currentConfigData.enableRefer !== false;
+                const referTab = document.getElementById('refer');
+                const navReferItem = document.getElementById('navReferItem');
+                const walletReferCard = document.getElementById('walletReferCard');
+
+                if (!isReferEnabled) {
+                    if (referTab) referTab.style.display = 'none';
+                    if (navReferItem) navReferItem.style.display = 'none';
+                    if (walletReferCard) walletReferCard.style.display = 'none';
+                    if (referTab && referTab.classList.contains('active')) {
+                        switchNav('home');
+                    }
+                } else {
+                    if (referTab) referTab.style.display = 'block';
+                    if (navReferItem) navReferItem.style.display = 'block';
+                    if (walletReferCard) walletReferCard.style.display = 'block';
+                }
+
                 if (currentConfigData.referralBonus) {
                     document.getElementById('referBonusText').innerText = currentConfigData.referralBonus + ' TK';
                     document.getElementById('referBadgeText').innerText = `😊 প্রতি রেফারে ${currentConfigData.referralBonus} TK বোনাস`;
@@ -454,11 +531,15 @@
                 if(currentConfigData.oldAccPrice) document.getElementById('priceOld').innerText = 'পুরষ্কার: ' + currentConfigData.oldAccPrice + ' TK';
                 if(currentConfigData.usedAccPrice) document.getElementById('priceUsed').innerText = 'পুরষ্কার: ' + currentConfigData.usedAccPrice + ' TK';
 
+                // রানিং নোটিশ আপডেট
+                const noticeBox = document.getElementById('noticeTickerBox');
+                const tickerText = document.getElementById('tickerTextContent');
                 if (currentConfigData.popupAnnouncement && currentConfigData.popupAnnouncement.trim() !== "") {
-                    document.getElementById('announcementText').innerText = currentConfigData.popupAnnouncement;
-                    document.getElementById('announcementModal').style.display = 'flex';
+                    let formattedNotice = currentConfigData.popupAnnouncement.replace(/\n/g, " &nbsp; &bull; &nbsp; ");
+                    tickerText.innerHTML = formattedNotice;
+                    noticeBox.style.display = 'flex';
                 } else {
-                    document.getElementById('announcementModal').style.display = 'none';
+                    noticeBox.style.display = 'none';
                 }
 
                 const methodSelect = document.getElementById('withdrawMethod');
@@ -498,10 +579,6 @@
             const maxLimit = currentConfigData.dailyTaskLimit || 10;
             const completedToday = userData.dailyTaskCount || 0;
             document.getElementById('dailyLimitDisplay').innerText = `${completedToday}/${maxLimit}`;
-        }
-
-        function closeAnnouncement() {
-            document.getElementById('announcementModal').style.display = 'none';
         }
 
         let isProcessingTask = false;
@@ -576,13 +653,6 @@
                 } else {
                     alert('আপনার কাজটি সফলভাবে জমা দেওয়া হয়েছে!');
                     closeModal();
-                    
-                    const todayStr = new Date().toDateString();
-                    db.ref('users/' + userId).update({
-                        pendingTasksCount: firebase.database.ServerValue.increment(1),
-                        dailyTaskCount: firebase.database.ServerValue.increment(1),
-                        lastTaskDate: todayStr
-                    });
                 }
             });
         }
@@ -632,6 +702,10 @@
                 const result = await response.json();
                 if (result.success) {
                     alert(result.message);
+                    
+                    if(amountInput) amountInput.value = '';
+                    if(numberInput) numberInput.value = '';
+
                     if(typeof closeWithdrawModal === 'function') closeWithdrawModal();
                 } else {
                     alert("ত্রুটি: " + result.message);
@@ -647,6 +721,13 @@
             }
         }
 
+        function showConfirmPopup() {
+            if (!window.hasShownConfirmAlert) {
+                alert("⚠️ দয়া করে আপনার একাউন্ট নাম্বারটি পুনরায় চেক ও কনফার্ম করে নিন, ভুল নাম্বারে পেমেন্ট গেলে আমরা দায়ী থাকব না।");
+                window.hasShownConfirmAlert = true; 
+            }
+        }
+
         function showContent(id, el) {
             document.querySelectorAll('.content').forEach(c => c.classList.remove('active'));
             document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
@@ -656,6 +737,9 @@
 
         function switchNav(id) {
             const navItems = document.querySelectorAll('.navbar .nav-item');
+            if (id === 'refer' && currentConfigData.enableRefer === false) {
+                id = 'home';
+            }
             let index = {'home':0, 'task':1, 'support':2, 'refer':3, 'wallet':4, 'task-history':0}[id] || 0;
             showContent(id, navItems[index]);
         }
@@ -691,7 +775,12 @@
 
         function closeModal() { document.getElementById('taskModal').style.display = 'none'; }
         function openWithdrawModal() { document.getElementById('withdrawModal').style.display = 'flex'; }
-        function closeWithdrawModal() { document.getElementById('withdrawModal').style.display = 'none'; }
+        
+        function closeWithdrawModal() { 
+            document.getElementById('withdrawModal').style.display = 'none'; 
+            window.hasShownConfirmAlert = false;
+        }
+
         function openHistoryModal() { document.getElementById('historyModal').style.display = 'flex'; }
         function closeHistoryModal() { document.getElementById('historyModal').style.display = 'none'; }
 
@@ -720,7 +809,10 @@
             const container = document.getElementById('taskListContainer');
             container.innerHTML = '';
 
-            const filtered = currentTasksList.filter(t => t.status === status);
+            const filtered = currentTasksList.filter(t => {
+                let taskStatus = t.status ? t.status.toLowerCase().trim() : 'pending';
+                return taskStatus === status.toLowerCase().trim();
+            });
 
             if(filtered.length === 0) {
                 container.innerHTML = `<div style="text-align: center; color: #8b9bb4; padding: 30px 0;">কোনো টাস্ক পাওয়া যায়নি।</div>`;
