@@ -288,17 +288,17 @@
             </div>
         </div>
 
-        <!-- আপডেট করা কার্ড গ্রিড (ক্লিক ফাংশন সহ) -->
+        <!-- কার্ডগুলোতে ক্লিক করলে যাতে সরাসরি কাজ শো করে, তার জন্য নিশ্চিত ফাংশন যুক্ত করা হলো -->
         <div class="grid">
-            <div class="card" style="cursor: pointer;" onclick="goToTaskHistory('approved', 0)">
+            <div class="card" style="cursor: pointer;" onclick="openTaskHistoryDirect('approved', 0)">
                 <div class="label">এপ্রুভ টাস্ক</div>
                 <div class="value" id="approvedCount" style="color: #059669;">0</div>
             </div>
-            <div class="card" style="cursor: pointer;" onclick="goToTaskHistory('rejected', 2)">
+            <div class="card" style="cursor: pointer;" onclick="openTaskHistoryDirect('rejected', 2)">
                 <div class="label">রিজেক্ট</div>
                 <div class="value" id="rejectedCount" style="color: #dc2626;">0</div>
             </div>
-            <div class="card" style="cursor: pointer;" onclick="goToTaskHistory('pending', 1)">
+            <div class="card" style="cursor: pointer;" onclick="openTaskHistoryDirect('pending', 1)">
                 <div class="label">পেন্ডিং টাস্ক</div>
                 <div class="value" id="pendingCount" style="color: #d97706;">0</div>
             </div>
@@ -861,7 +861,7 @@
             );
 
             if (isDuplicate) {
-                showCustomAlert('দুঃখিত, এই ইউজারনেমটি অন্য একজন ইতিমধ্যে জমা দিয়ে দিয়েছেন! 😭\n\n(This Username Already Taken)');
+                showCustomAlert('দুঃখিত, এই ইউজারনেমটি অন্য একজন ইতিমধ্যে জমা দিয়ে দিয়েছেন! 😭');
                 return;
             }
 
@@ -1018,12 +1018,10 @@
             }
         }
 
-        // নতুন ক্লিক ফাংশন যা কার্ডে ক্লিক করলে নিশ্চিতভাবে হিস্ট্রি পেজ ওপেন করবে এবং নির্দিষ্ট কাজ দেখাবে
-        function goToTaskHistory(status, tabIndex) {
-            switchNav('task-history');
-            setTimeout(() => {
-                filterTasks(status, tabIndex);
-            }, 50);
+        // নিশ্চিত এবং ডিরেক্ট ফাংশন যা হোম কার্ডে ক্লিক করলে সরাসরি নির্দিষ্ট কাজের লিস্ট দেখাবে
+        function openTaskHistoryDirect(status, tabIndex) {
+            showContent('task-history', null);
+            filterTasks(status, tabIndex);
         }
 
         function openModal(type) {
@@ -1031,7 +1029,7 @@
             const completedToday = currentUserData.dailyTaskCount || 0;
 
             if (completedToday >= maxLimit) {
-                showCustomAlert(`দুঃখিত! আজকের আপনার ${maxLimit}টি কাজ করার লিমিট শেষ হয়ে গেছে। আগামীকাল আবার নতুন করে কাজ করতে পারবেন! 🚫`);
+                showCustomAlert(`দুঃখিত! আজকের আপনার ${maxLimit}টি কাজ করার লিমিট শেষ হয়ে গেছে! 🚫`);
                 return;
             }
 
