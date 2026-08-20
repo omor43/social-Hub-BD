@@ -288,16 +288,17 @@
             </div>
         </div>
 
+        <!-- আপডেট করা কার্ড গ্রিড (ক্লিক ফাংশন সহ) -->
         <div class="grid">
-            <div class="card" onclick="switchNav('task-history'); filterTasks('approved', 0);" style="cursor: pointer;">
+            <div class="card" style="cursor: pointer;" onclick="goToTaskHistory('approved', 0)">
                 <div class="label">এপ্রুভ টাস্ক</div>
                 <div class="value" id="approvedCount" style="color: #059669;">0</div>
             </div>
-            <div class="card" onclick="switchNav('task-history'); filterTasks('rejected', 2);" style="cursor: pointer;">
+            <div class="card" style="cursor: pointer;" onclick="goToTaskHistory('rejected', 2)">
                 <div class="label">রিজেক্ট</div>
                 <div class="value" id="rejectedCount" style="color: #dc2626;">0</div>
             </div>
-            <div class="card" onclick="switchNav('task-history'); filterTasks('pending', 1);" style="cursor: pointer;">
+            <div class="card" style="cursor: pointer;" onclick="goToTaskHistory('pending', 1)">
                 <div class="label">পেন্ডিং টাস্ক</div>
                 <div class="value" id="pendingCount" style="color: #d97706;">0</div>
             </div>
@@ -1015,6 +1016,14 @@
                 const firstNav = document.querySelector('.navbar .nav-item');
                 if (firstNav) showContent(firstNav.getAttribute('data-id'), firstNav);
             }
+        }
+
+        // নতুন ক্লিক ফাংশন যা কার্ডে ক্লিক করলে নিশ্চিতভাবে হিস্ট্রি পেজ ওপেন করবে এবং নির্দিষ্ট কাজ দেখাবে
+        function goToTaskHistory(status, tabIndex) {
+            switchNav('task-history');
+            setTimeout(() => {
+                filterTasks(status, tabIndex);
+            }, 50);
         }
 
         function openModal(type) {
