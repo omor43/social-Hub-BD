@@ -762,7 +762,6 @@
                     snapshot.forEach(userSnap => {
                         userSnap.forEach(taskSnap => {
                             let tData = taskSnap.val();
-                            // শুধুমাত্র এপ্রুভড বা পেন্ডিং কাজগুলোকে ডুপ্লিকেট চেকিংয়ের জন্য রাখা হবে
                             if (tData && tData.status !== 'rejected') {
                                 allUsersTasksList.push(tData);
                             }
@@ -935,7 +934,6 @@
             });
         }
 
-        // রিজেক্টেড টাস্ক এডিট করার ফাংশনসমূহ
         function openEditModal(taskId, currentDetail, currentPass, taskTitle) {
             document.getElementById('editTaskId').value = taskId;
             document.getElementById('editTaskDetail').value = currentDetail;
@@ -973,7 +971,6 @@
                 return;
             }
 
-            // ফায়ারবেসে নির্দিষ্ট টাস্কটি আপডেট করা এবং স্ট্যাটাস পুনরায় pending ও rejectReason মুছে ফেলা
             db.ref(`tasks/${userId}/${taskId}`).update({
                 detail: newDetail,
                 password: newPass,
@@ -1170,10 +1167,11 @@
             const container = document.getElementById('taskListContainer');
             container.innerHTML = '';
 
+            // প্রথমে স্ট্যাটাস অনুযায়ী ফিল্টার করা এবং নতুন কাজগুলো সবার উপরে (Top) দেখানোর জন্য সর্টিং (Descending order) করা
             const filtered = currentTasksList.filter(t => {
                 let taskStatus = t.status ? t.status.toLowerCase().trim() : 'pending';
                 return taskStatus === status.toLowerCase().trim();
-            });
+            }).sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0));
 
             if(filtered.length === 0) {
                 container.innerHTML = `<div style="text-align: center; color: #4b5563; padding: 30px 0;">কোনো টাস্ক পাওয়া যায়নি।</div>`;
