@@ -5,18 +5,20 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Dashboard</title>
     
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
     <style>
-        body { background-color: #0b1320; color: white; font-family: sans-serif; margin: 0; padding: 0; height: 100vh; display: flex; flex-direction: column; }
+        /* টেলিগ্রাম হেডারের নিচে কন্টেন্ট নামানোর জন্য padding-top যোগ করা হয়েছে */
+        body { background-color: #0b1320; color: white; font-family: sans-serif; margin: 0; padding: 50px 0 0 0; height: 100vh; display: flex; flex-direction: column; box-sizing: border-box; }
         .content { flex: 1; padding: 20px; display: none; overflow-y: auto; }
         .content.active { display: block; animation: iOSFade 0.35s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
         @keyframes iOSFade { 0% { opacity: 0; transform: scale(0.96) translateY(12px); } 100% { opacity: 1; transform: scale(1) translateY(0); } }
         
-        .header { display: flex; align-items: center; gap: 10px; margin-bottom: 20px; }
-        .avatar { width: 40px; height: 40px; background-color: #00d4ff; border-radius: 50%; }
+        .header { display: flex; align-items: center; gap: 12px; margin-bottom: 20px; }
+        .avatar { width: 45px; height: 45px; background-color: #00d4ff; border-radius: 50%; object-fit: cover; border: 2px solid #00d4ff; }
         .balance-card { background: linear-gradient(to right, #00b09b, #00d4ff); padding: 20px; border-radius: 15px; margin-bottom: 20px; text-align: center; }
         .balance-card .label { font-size: 0.9em; color: #fff; margin-bottom: 5px; }
         .balance-card .value { font-size: 1.8em; font-weight: bold; margin-top: 5px; }
@@ -103,7 +105,11 @@
 
     <!-- হোম সেকশন -->
     <div id="home" class="content active">
-        <div class="header"><div class="avatar"></div><div id="userName">Guest User</div></div>
+        <div class="header">
+            <img id="userAvatarImg" class="avatar" src="" alt="Avatar" style="display:none;">
+            <div class="avatar" id="defaultAvatarIcon" style="display:flex; align-items:center; justify-content:center;"><i class="fas fa-user" style="color:#0b1320;"></i></div>
+            <div id="userName" style="font-weight: bold; font-size: 1.1em;">Loading...</div>
+        </div>
         <div class="balance-card">
             <div class="label">মোট ব্যালেন্স</div>
             <div class="value" id="totalBalance">0 TK</div>
@@ -288,11 +294,41 @@
         firebase.initializeApp(firebaseConfig);
         const db = firebase.database();
 
-        let userId = localStorage.getItem('telegram_user_id');
-        if (!userId) {
-            userId = 'user_' + Math.floor(100000 + Math.random() * 900000);
+        let tg = window.Telegram.WebApp;
+        tg.expand();
+
+        let userId = '';
+        let fullName = 'Telegram User';
+        let userPhotoUrl = '';
+
+        if (tg.initDataUnsafe && tg.initDataUnsafe.user) {
+            let tgUser = tg.initDataUnsafe.user;
+            userId = tgUser.id.toString();
+            fullName = (tgUser.first_name || '') + (tgUser.last_name ? ' ' + tgUser.last_name : '');
+            userPhotoUrl = tgUser.photo_url || '';
             localStorage.setItem('telegram_user_id', userId);
+        } else {
+            userId = localStorage.getItem('telegram_user_id');
+            if (!userId) {
+                userId = 'user_' + Math.floor(100000 + Math.random() * 900000);
+                localStorage.setItem('telegram_user_id', userId);
+            }
         }
+
+        // ইউজারের নাম ও ছবি UI-তে এবং ফায়ারবেসে আপডেট করা
+        document.getElementById('userName').innerText = fullName;
+        if (userPhotoUrl) {
+            let avatarImg = document.getElementById('userAvatarImg');
+            avatarImg.src = userPhotoUrl;
+            avatarImg.style.display = 'block';
+            document.getElementById('defaultAvatarIcon').style.display = 'none';
+        }
+
+        // ফায়ারবেসে ইউজারের বেসিক ইনফো সেভ করে রাখা
+        db.ref('users/' + userId).update({
+            firstName: fullName,
+            photoUrl: userPhotoUrl
+        });
 
         let currentTasksList = [];
         let allUsersTasksList = []; 
@@ -309,7 +345,6 @@
                 document.getElementById('approvedCount').innerText = currentUserData.approvedTasksCount || 0;
                 document.getElementById('rejectedCount').innerText = currentUserData.rejectedTasksCount || 0;
                 document.getElementById('pendingCount').innerText = currentUserData.pendingTasksCount || 0;
-                document.getElementById('userName').innerText = currentUserData.firstName || 'Guest User';
 
                 checkAndResetDailyLimit(currentUserData);
             });
@@ -352,7 +387,6 @@
                 }
             });
 
-            // টাস্কের লিস্ট ট্র্যাক করা এবং স্বয়ংক্রিয়ভাবে রিজেক্ট হওয়া কাজ লিমিট থেকে বাদ দেওয়া
             db.ref('tasks/' + userId).on('value', (snapshot) => {
                 const tasksObj = snapshot.val() || {};
                 currentTasksList = [];
@@ -363,7 +397,6 @@
                     const task = { id: key, ...tasksObj[key] };
                     currentTasksList.push(task);
 
-                    // আজকের জমা দেওয়া কাজগুলোর মধ্যে যেগুলো 'rejected' নয়, কেবল সেগুলোকে কাউন্ট করা
                     if (task.timestamp) {
                         const taskDate = new Date(task.timestamp).toDateString();
                         if (taskDate === todayStr && task.status !== 'rejected') {
@@ -372,7 +405,6 @@
                     }
                 }
 
-                // ফায়ারবেসে ইউজারের সঠিক আজকের লিমিট সংখ্যা আপডেট করে দেওয়া
                 db.ref('users/' + userId).update({
                     dailyTaskCount: validTodayCount,
                     lastTaskDate: todayStr
@@ -598,7 +630,7 @@
                     alert("ত্রুটি: " + result.message);
                 }
             } catch (error) {
-                alert("সার্ভার কানেকশন ত্রুটি!");
+                alert("সার্ভার কানেکশন ত্রুটি!");
             } finally {
                 isProcessingWithdraw = false;
                 if(submitBtn) {
