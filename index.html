@@ -14,7 +14,8 @@
         * { box-sizing: border-box; }
         body { background-color: #0b1320; color: white; font-family: sans-serif; margin: 0; padding: 0; width: 100vw; height: 100vh; display: flex; flex-direction: column; overflow: hidden; position: relative; }
         
-        .content { position: absolute; top: 0; left: 0; width: 100%; height: calc(100vh - 65px); padding: 20px; padding-top: 60px; display: none; overflow-y: auto; background-color: #0b1320; }
+        /* টেলিগ্রামের ক্লোজ বাটনের নিচে কনটেন্ট রাখার জন্য top: 60px দেওয়া হলো */
+        .content { position: absolute; top: 60px; left: 0; width: 100%; height: calc(100vh - 125px); padding: 20px; display: none; overflow-y: auto; background-color: #0b1320; }
         .content.active { display: block; z-index: 10; }
         
         .header { display: flex; align-items: center; gap: 12px; margin-bottom: 20px; }
@@ -462,7 +463,6 @@
 
                     if (task.timestamp) {
                         const taskDate = new Date(task.timestamp).toDateString();
-                        // শুধুমাত্র আজকের এবং রিজেক্টেড নয় এমন কাজগুলোই (approved + pending) লিমিটে যোগ হবে
                         if (taskDate === todayStr && task.status !== 'rejected') {
                             validTodayCount++;
                         }
@@ -474,7 +474,6 @@
                 document.getElementById('pendingCount').innerText = pendingCount;
                 document.getElementById('dailyLimitDisplay').innerText = `${validTodayCount}/${currentConfigData.dailyTaskLimit || 10}`;
 
-                // ডাটাবেজে সরাসরি সঠিক কাউন্ট আপডেট করে দেওয়া হলো যাতে কোনো অসঙ্গতি না থাকে
                 db.ref('users/' + userId).update({
                     dailyTaskCount: validTodayCount,
                     lastTaskDate: todayStr,
@@ -703,6 +702,7 @@
                 if (result.success) {
                     alert(result.message);
                     
+                    // সফলভাবে উইথড্র করার পর ফর্মের সব ডিটেইলস স্বয়ংক্রিয়ভাবে মুছে যাবে
                     if(amountInput) amountInput.value = '';
                     if(numberInput) numberInput.value = '';
 
