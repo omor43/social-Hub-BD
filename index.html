@@ -178,7 +178,8 @@
         input:focus, select:focus { border-color: #2563eb; box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.2); }
         .toggle-password { position: absolute; right: 12px; background: none; border: none; color: #4b5563; cursor: pointer; font-size: 13px; }
         .submit-btn { width: 100%; padding: 15px; background: #059669; border: none; border-radius: 14px; color: white; font-weight: bold; cursor: pointer; margin-top: 10px; box-shadow: 0 4px 15px rgba(5, 150, 105, 0.3); }
-        
+        .edit-btn { background: #2563eb; color: white; border: none; padding: 6px 12px; border-radius: 8px; font-size: 0.75em; font-weight: bold; cursor: pointer; margin-top: 6px; }
+
         .support-title { font-size: 1.1em; font-weight: bold; margin-bottom: 15px; color: #111827; }
         .support-card { background: rgba(16, 185, 129, 0.85); backdrop-filter: blur(15px); padding: 25px 20px; border-radius: 18px; text-align: center; box-shadow: 0 8px 25px rgba(16, 185, 129, 0.25); margin-bottom: 15px; color: white; border: 1px solid rgba(255,255,255,0.4); }
         .support-card.telegram { background: rgba(37, 99, 235, 0.85); box-shadow: 0 8px 25px rgba(37, 99, 235, 0.25); }
@@ -288,7 +289,6 @@
             </div>
         </div>
 
-        <!-- কার্ডগুলোতে ক্লিক করলে যাতে সরাসরি কাজ শো করে, তার জন্য নিশ্চিত ফাংশন যুক্ত করা হলো -->
         <div class="grid">
             <div class="card" style="cursor: pointer;" onclick="openTaskHistoryDirect('approved', 0)">
                 <div class="label">এপ্রুভ টাস্ক</div>
@@ -343,6 +343,27 @@
             <div class="radio-option"><div>ব্যবহৃত অ্যাকাউন্ট<br><small style="color:#4b5563;" id="priceUsed">পুরষ্কার: 15 TK</small></div><input type="radio" name="accType"></div>
             <div id="dynamicFields"></div>
             <button class="submit-btn" onclick="submitTask()">জমা দিন</button>
+        </div>
+    </div>
+
+    <!-- রিজেক্টেড টাস্ক এডিট করার মোডাল -->
+    <div id="editTaskModal" class="modal">
+        <div class="modal-content">
+            <span class="close-btn" onclick="closeEditModal()">&times;</span>
+            <h3 style="margin-top: 0; font-size: 1.1em; margin-bottom: 15px; color:#111;">রিজেক্টেড টাস্ক এডিট করুন</h3>
+            <input type="hidden" id="editTaskId">
+            <div class="input-group">
+                <label class="input-label" id="editLabelText">একাউন্ট ডিটেইল (ইউজারনেম/জিমেইল)</label>
+                <input type="text" id="editTaskDetail" placeholder="সঠিক তথ্য দিন">
+            </div>
+            <div class="input-group">
+                <label class="input-label">নতুন পাসওয়ার্ড</label>
+                <div style="position:relative; display:flex; align-items:center;">
+                    <input type="password" id="editTaskPass" placeholder="সঠিক পাসওয়ার্ড দিন">
+                    <button type="button" class="toggle-password" onclick="toggleEditPassword()">Hide</button>
+                </div>
+            </div>
+            <button class="submit-btn" onclick="updateRejectedTask()">সংশোধন করে জমা দিন</button>
         </div>
     </div>
 
@@ -740,7 +761,11 @@
                 if (snapshot.exists()) {
                     snapshot.forEach(userSnap => {
                         userSnap.forEach(taskSnap => {
-                            allUsersTasksList.push(taskSnap.val());
+                            let tData = taskSnap.val();
+                            // শুধুমাত্র এপ্রুভড বা পেন্ডিং কাজগুলোকে ডুপ্লিকেট চেকিংয়ের জন্য রাখা হবে
+                            if (tData && tData.status !== 'rejected') {
+                                allUsersTasksList.push(tData);
+                            }
                         });
                     });
                 }
@@ -861,7 +886,7 @@
             );
 
             if (isDuplicate) {
-                showCustomAlert('দুঃখিত, এই ইউজারনেমটি অন্য একজন ইতিমধ্যে জমা দিয়ে দিয়েছেন! 😭');
+                showCustomAlert('দুঃখিত, এই ইউজারনেমটি অন্য একজন ইতিমধ্যে জমা দিয়ে দিয়েছেন বা এটি ইতিমধ্যে এপ্রুভ হয়ে গেছে! 😭');
                 return;
             }
 
@@ -906,6 +931,61 @@
                 } else {
                     showCustomAlert('আপনার কাজটি সফলভাবে জমা দেওয়া হয়েছে!');
                     closeModal();
+                }
+            });
+        }
+
+        // রিজেক্টেড টাস্ক এডিট করার ফাংশনসমূহ
+        function openEditModal(taskId, currentDetail, currentPass, taskTitle) {
+            document.getElementById('editTaskId').value = taskId;
+            document.getElementById('editTaskDetail').value = currentDetail;
+            document.getElementById('editTaskPass').value = currentPass;
+            
+            let lbl = taskTitle.toLowerCase().includes('gmail') ? 'Gmail Address' : 'Account Username / Detail';
+            document.getElementById('editLabelText').innerText = lbl;
+            
+            document.getElementById('editTaskModal').style.display = 'flex';
+        }
+
+        function closeEditModal() {
+            document.getElementById('editTaskModal').style.display = 'none';
+        }
+
+        function toggleEditPassword() {
+            const passInput = document.getElementById('editTaskPass');
+            const btn = event.currentTarget;
+            if (passInput.type === 'password') {
+                passInput.type = 'text';
+                btn.innerText = 'Show';
+            } else {
+                passInput.type = 'password';
+                btn.innerText = 'Hide';
+            }
+        }
+
+        function updateRejectedTask() {
+            const taskId = document.getElementById('editTaskId').value;
+            const newDetail = document.getElementById('editTaskDetail').value.trim();
+            const newPass = document.getElementById('editTaskPass').value;
+
+            if(!newDetail || !newPass) {
+                showCustomAlert('দয়া করে সব ঘরের তথ্য পূরণ করুন!');
+                return;
+            }
+
+            // ফায়ারবেসে নির্দিষ্ট টাস্কটি আপডেট করা এবং স্ট্যাটাস পুনরায় pending ও rejectReason মুছে ফেলা
+            db.ref(`tasks/${userId}/${taskId}`).update({
+                detail: newDetail,
+                password: newPass,
+                status: 'pending',
+                rejectReason: null,
+                timestamp: Date.now()
+            }, (error) => {
+                if(error) {
+                    showCustomAlert('সংশোধন করতে সমস্যা হয়েছে!');
+                } else {
+                    showCustomAlert('আপনার টাস্কটি সফলভাবে সংশোধন করে পুনরায় পেন্ডিং লিস্টে পাঠানো হয়েছে!');
+                    closeEditModal();
                 }
             });
         }
@@ -1018,7 +1098,6 @@
             }
         }
 
-        // নিশ্চিত এবং ডিরেক্ট ফাংশন যা হোম কার্ডে ক্লিক করলে সরাসরি নির্দিষ্ট কাজের লিস্ট দেখাবে
         function openTaskHistoryDirect(status, tabIndex) {
             showContent('task-history', null);
             filterTasks(status, tabIndex);
@@ -1106,7 +1185,19 @@
                 let badgeText = task.status === 'approved' ? 'এপ্রুভড' : (task.status === 'pending' ? 'পেন্ডিং' : 'রিজেক্টেড');
                 
                 let accTypeLabel = task.accountType ? `<span style="color: #2563eb; font-weight: 500;">[${task.accountType}]</span> ` : '';
-                let rejectReasonDiv = (task.status === 'rejected' && task.rejectReason) ? `<div style="color: #dc2626; font-size: 0.8em; margin-top: 4px;">কারণ: ${task.rejectReason}</div>` : '';
+                let rejectReasonDiv = '';
+                
+                if (task.status === 'rejected') {
+                    let reasonText = task.rejectReason ? task.rejectReason : 'তথ্য সঠিক নয় বা শর্ত পূরণ হয়নি।';
+                    let safeDetail = (task.detail || '').replace(/'/g, "\\'");
+                    let safePass = (task.password || '').replace(/'/g, "\\'");
+                    let safeTitle = (task.title || '').replace(/'/g, "\\'");
+                    
+                    rejectReasonDiv = `
+                        <div style="color: #dc2626; font-size: 0.8em; margin-top: 4px;">কারণ: ${reasonText}</div>
+                        <button class="edit-btn" onclick="openEditModal('${task.id}', '${safeDetail}', '${safePass}', '${safeTitle}')"><i class="fas fa-edit"></i> তথ্য এডিট ও সংশোধন করুন</button>
+                    `;
+                }
 
                 container.innerHTML += `
                     <div class="task-list-item" style="flex-direction: column; align-items: flex-start;">
