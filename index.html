@@ -107,7 +107,7 @@
         <div class="header">
             <img id="userAvatarImg" class="avatar" src="" alt="Avatar" style="display:none;">
             <div class="avatar" id="defaultAvatarIcon" style="display:flex; align-items:center; justify-content:center;"><i class="fas fa-user" style="color:#0b1320;"></i></div>
-            <div id="userName" style="font-weight: bold; font-size: 1.1em;">Loading...</div>
+            <div id="userName" style="font-weight: bold; font-size: 1.1em;">Telegram User</div>
         </div>
         <div class="balance-card">
             <div class="label">মোট ব্যালেন্স</div>
@@ -294,13 +294,13 @@
         const db = firebase.database();
 
         let tg = window.Telegram.WebApp;
-        tg.expand();
+        try { tg.expand(); } catch(e) {}
 
         let userId = '';
         let fullName = 'Telegram User';
         let userPhotoUrl = '';
 
-        if (tg.initDataUnsafe && tg.initDataUnsafe.user) {
+        if (tg.initDataUnsafe && tg.initDataUnsafe.user && tg.initDataUnsafe.user.id) {
             let tgUser = tg.initDataUnsafe.user;
             userId = tgUser.id.toString();
             fullName = (tgUser.first_name || '') + (tgUser.last_name ? ' ' + tgUser.last_name : '');
@@ -312,6 +312,7 @@
                 userId = 'user_' + Math.floor(100000 + Math.random() * 900000);
                 localStorage.setItem('telegram_user_id', userId);
             }
+            fullName = "Telegram User";
         }
 
         document.getElementById('userName').innerText = fullName;
@@ -333,7 +334,6 @@
         let currentUserData = {};
         let currentConfigData = {};
 
-        // ফিক্সড সাপোর্ট লিংকগুলো এখানে সরাসরি সেট করে দেওয়া হলো যাতে কোনো এরর না আসে
         let supportLinks = {
             whatsapp: "https://wa.me/8801320714547",
             telegram: "https://t.me/omorpubgm"
@@ -341,13 +341,10 @@
 
         function openSupportLink(type) {
             let url = type === 'whatsapp' ? supportLinks.whatsapp : supportLinks.telegram;
-            if (window.Telegram && window.Telegram.WebApp) {
-                if (type === 'telegram') {
-                    // টেলিগ্রাম ইউজারনেম সরাসরি অ্যাপে ওপেন করার জন্য
-                    window.Telegram.WebApp.openTelegramLink(url);
-                } else {
-                    window.Telegram.WebApp.openLink(url);
-                }
+            if (window.Telegram && window.Telegram.WebApp && window.Telegram.WebApp.openTelegramLink && type === 'telegram') {
+                window.Telegram.WebApp.openTelegramLink(url);
+            } else if (window.Telegram && window.Telegram.WebApp && window.Telegram.WebApp.openLink) {
+                window.Telegram.WebApp.openLink(url);
             } else {
                 window.open(url, '_blank');
             }
@@ -692,7 +689,7 @@
             document.getElementById('taskModal').style.display = 'flex';
         }
 
-        function closeModal() { document.getElementById('taskModal'].style.display = 'none'; }
+        function closeModal() { document.getElementById('taskModal').style.display = 'none'; }
         function openWithdrawModal() { document.getElementById('withdrawModal').style.display = 'flex'; }
         function closeWithdrawModal() { document.getElementById('withdrawModal').style.display = 'none'; }
         function openHistoryModal() { document.getElementById('historyModal').style.display = 'flex'; }
