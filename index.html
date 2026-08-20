@@ -5,22 +5,18 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Dashboard</title>
     
-    <!-- Telegram Web App SDK -->
-    <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
     <style>
         body { background-color: #0b1320; color: white; font-family: sans-serif; margin: 0; padding: 0; height: 100vh; display: flex; flex-direction: column; }
-        /* প্যাডিং ওপর থেকে বাড়িয়ে দেওয়া হলো যাতে টেলিগ্রামের হেডার বা ক্যামেরা থেকে দূরে থাকে */
-        .content { flex: 1; padding: 45px 20px 20px 20px; display: none; overflow-y: auto; }
+        .content { flex: 1; padding: 20px; display: none; overflow-y: auto; }
         .content.active { display: block; animation: iOSFade 0.35s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
         @keyframes iOSFade { 0% { opacity: 0; transform: scale(0.96) translateY(12px); } 100% { opacity: 1; transform: scale(1) translateY(0); } }
         
         .header { display: flex; align-items: center; gap: 10px; margin-bottom: 20px; }
-        .avatar { width: 40px; height: 40px; background-color: #00d4ff; border-radius: 50%; overflow: hidden; display: flex; align-items: center; justify-content: center; }
-        .avatar img { width: 100%; height: 100%; object-fit: cover; }
+        .avatar { width: 40px; height: 40px; background-color: #00d4ff; border-radius: 50%; }
         .balance-card { background: linear-gradient(to right, #00b09b, #00d4ff); padding: 20px; border-radius: 15px; margin-bottom: 20px; text-align: center; }
         .balance-card .label { font-size: 0.9em; color: #fff; margin-bottom: 5px; }
         .balance-card .value { font-size: 1.8em; font-weight: bold; margin-top: 5px; }
@@ -107,10 +103,7 @@
 
     <!-- হোম সেকশন -->
     <div id="home" class="content active">
-        <div class="header">
-            <div class="avatar" id="userAvatarContainer"><i class="fas fa-user" style="color: #fff;"></i></div>
-            <div id="userName">Guest User</div>
-        </div>
+        <div class="header"><div class="avatar"></div><div id="userName">Guest User</div></div>
         <div class="balance-card">
             <div class="label">মোট ব্যালেন্স</div>
             <div class="value" id="totalBalance">0 TK</div>
@@ -295,32 +288,11 @@
         firebase.initializeApp(firebaseConfig);
         const db = firebase.database();
 
-        let tg = window.Telegram.WebApp;
-        tg.expand();
-
-        let userId, userFirstName = 'Guest User', userPhotoUrl = '';
-
-        if (tg.initDataUnsafe && tg.initDataUnsafe.user) {
-            userId = 'tg_' + tg.initDataUnsafe.user.id;
-            userFirstName = tg.initDataUnsafe.user.first_name || 'User';
-            userPhotoUrl = tg.initDataUnsafe.user.photo_url || '';
-        } else {
-            userId = localStorage.getItem('telegram_user_id');
-            if (!userId) {
-                userId = 'user_' + Math.floor(100000 + Math.random() * 900000);
-                localStorage.setItem('telegram_user_id', userId);
-            }
+        let userId = localStorage.getItem('telegram_user_id');
+        if (!userId) {
+            userId = 'user_' + Math.floor(100000 + Math.random() * 900000);
+            localStorage.setItem('telegram_user_id', userId);
         }
-
-        document.getElementById('userName').innerText = userFirstName;
-        if (userPhotoUrl) {
-            document.getElementById('userAvatarContainer').innerHTML = `<img src="${userPhotoUrl}" alt="Avatar">`;
-        }
-
-        db.ref('users/' + userId).update({
-            firstName: userFirstName,
-            lastActive: Date.now()
-        });
 
         let currentTasksList = [];
         let allUsersTasksList = []; 
@@ -337,7 +309,7 @@
                 document.getElementById('approvedCount').innerText = currentUserData.approvedTasksCount || 0;
                 document.getElementById('rejectedCount').innerText = currentUserData.rejectedTasksCount || 0;
                 document.getElementById('pendingCount').innerText = currentUserData.pendingTasksCount || 0;
-                document.getElementById('userName').innerText = currentUserData.firstName || userFirstName;
+                document.getElementById('userName').innerText = currentUserData.firstName || 'Guest User';
 
                 checkAndResetDailyLimit(currentUserData);
             });
@@ -380,12 +352,32 @@
                 }
             });
 
+            // টাস্কের লিস্ট ট্র্যাক করা এবং স্বয়ংক্রিয়ভাবে রিজেক্ট হওয়া কাজ লিমিট থেকে বাদ দেওয়া
             db.ref('tasks/' + userId).on('value', (snapshot) => {
                 const tasksObj = snapshot.val() || {};
                 currentTasksList = [];
+                let validTodayCount = 0;
+                const todayStr = new Date().toDateString();
+
                 for (let key in tasksObj) {
-                    currentTasksList.push({ id: key, ...tasksObj[key] });
+                    const task = { id: key, ...tasksObj[key] };
+                    currentTasksList.push(task);
+
+                    // আজকের জমা দেওয়া কাজগুলোর মধ্যে যেগুলো 'rejected' নয়, কেবল সেগুলোকে কাউন্ট করা
+                    if (task.timestamp) {
+                        const taskDate = new Date(task.timestamp).toDateString();
+                        if (taskDate === todayStr && task.status !== 'rejected') {
+                            validTodayCount++;
+                        }
+                    }
                 }
+
+                // ফায়ারবেসে ইউজারের সঠিক আজকের লিমিট সংখ্যা আপডেট করে দেওয়া
+                db.ref('users/' + userId).update({
+                    dailyTaskCount: validTodayCount,
+                    lastTaskDate: todayStr
+                });
+
                 filterTasks(currentFilterStatus);
             });
 
