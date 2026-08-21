@@ -27,7 +27,7 @@
             position: relative; 
         }
 
-        /* মেইনটেনেন্স ওভারলে স্ক্রিন স্টাইল */
+        /* মেইনটেনেন্স ওভারলে স্ক্রিন স্টাইল (ফ্লিকার বা ফ্লোটিং সমস্যা ফিক্সড) */
         #maintenanceScreen {
             position: fixed;
             top: 0;
@@ -35,11 +35,10 @@
             width: 100vw;
             height: 100vh;
             background: linear-gradient(135deg, #a5f3fc 0%, #dcfce7 50%, #fbcfe8 100%);
-            display: none;
+            display: none; /* জাভাস্ক্রিপ্ট দ্বারা ফ্লেক্স করা হবে */
             align-items: center;
             justify-content: center;
             z-index: 99999;
-            display: flex; 
         }
         .maintenance-container {
             background: rgba(255, 255, 255, 0.45);
