@@ -26,6 +26,129 @@
             overflow: hidden; 
             position: relative; 
         }
+
+        /* মেইনটেনেন্স ওভারলে স্ক্রিন স্টাইল */
+        #maintenanceScreen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: linear-gradient(135deg, #a5f3fc 0%, #dcfce7 50%, #fbcfe8 100%);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 99999;
+        }
+        .maintenance-container {
+            background: rgba(255, 255, 255, 0.45);
+            backdrop-filter: blur(25px);
+            -webkit-backdrop-filter: blur(25px);
+            border: 1px solid rgba(255, 255, 255, 0.75);
+            box-shadow: 0 15px 35px rgba(31, 38, 135, 0.12);
+            padding: 30px 20px;
+            border-radius: 25px;
+            text-align: center;
+            width: 90%;
+            max-width: 380px;
+        }
+        .puppet-box {
+            position: relative;
+            width: 90px;
+            height: 90px;
+            margin: 0 auto 12px auto;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: rgba(59, 130, 246, 0.15);
+            border-radius: 50%;
+            border: 2px dashed rgba(59, 130, 246, 0.4);
+        }
+        .puppet-body {
+            font-size: 40px;
+            color: #2563eb;
+            animation: puppetWork 1.2s infinite ease-in-out alternate;
+        }
+        .puppet-tool {
+            position: absolute;
+            top: 15px;
+            right: 12px;
+            font-size: 22px;
+            color: #d97706;
+            animation: toolHit 0.8s infinite ease-in-out;
+            transform-origin: bottom left;
+        }
+        @keyframes puppetWork {
+            0% { transform: rotate(-8deg) translateY(0); }
+            100% { transform: rotate(8deg) translateY(-3px); }
+        }
+        @keyframes toolHit {
+            0%, 100% { transform: rotate(0deg); }
+            50% { transform: rotate(-45deg); }
+        }
+        .m-title {
+            font-size: 1.3em;
+            font-weight: bold;
+            color: #111827;
+            margin-bottom: 6px;
+        }
+        .m-desc {
+            font-size: 0.8em;
+            color: #4b5563;
+            line-height: 1.4;
+            margin-bottom: 15px;
+        }
+        .timer-box {
+            background: rgba(255, 255, 255, 0.6);
+            border: 1px solid rgba(255, 255, 255, 0.9);
+            padding: 10px;
+            border-radius: 14px;
+            margin-bottom: 15px;
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+        }
+        .time-segment { text-align: center; }
+        .time-value { font-size: 1.15em; font-weight: bold; color: #059669; }
+        .time-label { font-size: 0.65em; color: #6b7280; }
+        .time-colon { font-size: 1em; font-weight: bold; color: #9ca3af; }
+        .bottom-worker-box {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            background: rgba(255, 255, 255, 0.65);
+            border: 1px solid rgba(255, 255, 255, 0.9);
+            padding: 10px 14px;
+            border-radius: 14px;
+            margin-bottom: 15px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.03);
+        }
+        .worker-img {
+            width: 45px;
+            height: 45px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 2px solid #d97706;
+            flex-shrink: 0;
+        }
+        .worker-text-content { text-align: left; }
+        .worker-heading { font-size: 0.85em; font-weight: bold; color: #111827; }
+        .worker-subtext { font-size: 0.72em; color: #4b5563; margin-top: 2px; }
+        .loading-dots span {
+            height: 7px;
+            width: 7px;
+            margin: 0 3px;
+            background-color: #059669;
+            border-radius: 50%;
+            display: inline-block;
+            animation: pulseDot 1.4s infinite ease-in-out both;
+        }
+        .loading-dots span:nth-child(2) { animation-delay: 0.2s; }
+        .loading-dots span:nth-child(3) { animation-delay: 0.4s; }
+        @keyframes pulseDot {
+            0%, 80%, 100% { transform: scale(0); }
+            40% { transform: scale(1.0); }
+        }
         
         .content { 
             position: absolute; 
@@ -268,6 +391,50 @@
     </style>
 </head>
 <body>
+
+    <!-- মেইনটেনেন্স ওভারলে স্ক্রিন -->
+    <div id="maintenanceScreen">
+        <div class="maintenance-container">
+            <div class="puppet-box">
+                <i class="fas fa-robot puppet-body"></i>
+                <i class="fas fa-screwdriver-wrench puppet-tool"></i>
+            </div>
+            
+            <div class="m-title">সিস্টেম আপডেট চলছে!</div>
+            <div class="m-desc">বটের পারফরম্যান্স উন্নত করতে আমাদের টেকনিক্যাল টিম কাজ করছে। নির্দিষ্ট সময়ের মধ্যে সবকিছু আবার সচল হবে।</div>
+            
+            <div class="timer-box" id="countdownTimer">
+                <div class="time-segment">
+                    <div class="time-value" id="hours">00</div>
+                    <div class="time-label">ঘণ্টা</div>
+                </div>
+                <div class="time-colon">:</div>
+                <div class="time-segment">
+                    <div class="time-value" id="minutes">00</div>
+                    <div class="time-label">মিনিট</div>
+                </div>
+                <div class="time-colon">:</div>
+                <div class="time-segment">
+                    <div class="time-value" id="seconds">00</div>
+                    <div class="time-label">সেকেন্ড</div>
+                </div>
+            </div>
+
+            <div class="bottom-worker-box">
+                <img src="https://i.postimg.cc/N0FqRsTD/Screenshot-20260821-051535.jpg" alt="Worker Blueprint" class="worker-img">
+                <div class="worker-text-content">
+                    <div class="worker-heading">ইঞ্জিনিয়ার ডেভলপমেন্ট</div>
+                    <div class="worker-subtext">ব্লুপ্রিন্ট ও আর্কিটেকচার অনুযায়ী কাজ চলছে...</div>
+                </div>
+            </div>
+
+            <div class="loading-dots">
+                <span></span>
+                <span></span>
+                <span></span>
+            </div>
+        </div>
+    </div>
 
     <!-- হোম সেকশন -->
     <div id="home" class="content active">
@@ -770,9 +937,29 @@
                 }
             });
 
+            // কনফিগারেশন এবং মেইনটেনেন্স স্ট্যাটাস চেক ও অটো-অফ লজিক
             db.ref('config').on('value', (snapshot) => {
                 currentConfigData = snapshot.val() || {};
                 
+                // মেইনটেনেন্স চেক ও অটো-অফ হ্যান্ডলিং
+                const isMaintenanceEnabled = currentConfigData.enableMaintenance === true;
+                const maintenanceEndTime = currentConfigData.maintenanceEndTime || 0;
+                const currentTime = new Date().getTime();
+
+                if (isMaintenanceEnabled && currentTime < maintenanceEndTime) {
+                    // টাইম শেষ না হওয়া পর্যন্ত মেইনটেনেন্স স্ক্রিন অন থাকবে
+                    document.getElementById('maintenanceScreen').style.display = 'flex';
+                    startMaintenanceCountdown(maintenanceEndTime);
+                } else {
+                    // টাইম শেষ হয়ে গেলে বা এডমিন অফ করলে অটোমেটিক মেইনটেনেন্স স্ক্রিন হাইড হয়ে যাবে
+                    document.getElementById('maintenanceScreen').style.display = 'none';
+                    
+                    // যদি টাইম ওভার হয়ে যাওয়ার কারণে অন থাকে, তবে ফায়ারবেসে অটো অফ আপডেট করে দেওয়া নিরাপদ
+                    if (isMaintenanceEnabled && currentTime >= maintenanceEndTime) {
+                        db.ref('config').update({ enableMaintenance: false });
+                    }
+                }
+
                 const isReferEnabled = currentConfigData.enableRefer !== false;
                 const referTab = document.getElementById('refer');
                 const navReferItem = document.getElementById('navReferItem');
@@ -838,6 +1025,41 @@
 
                 updateDailyLimitDisplay(currentUserData);
             });
+        }
+
+        // মেইনটেনেন্স কাউন্টডাউন টাইমার ফাংশন এবং অটো-অফ হ্যান্ডলার
+        let maintenanceTimerInterval = null;
+        function startMaintenanceCountdown(targetTime) {
+            if (maintenanceTimerInterval) clearInterval(maintenanceTimerInterval);
+
+            function updateTimer() {
+                const now = new Date().getTime();
+                const distance = targetTime - now;
+
+                if (distance < 0) {
+                    document.getElementById("countdownTimer").innerHTML = "<div style='color:#059669; font-weight:bold;'>খুব শীঘ্রই সচল হচ্ছে...</div>";
+                    clearInterval(maintenanceTimerInterval);
+                    // টাইম শেষ হলে অটোমেটিক স্ক্রিন হাইড ও ডাটাবেজ আপডেট
+                    document.getElementById('maintenanceScreen').style.display = 'none';
+                    db.ref('config').update({ enableMaintenance: false });
+                    return;
+                }
+
+                const hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+                const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
+                const seconds = Math.floor((distance % (1000 * 60)) / 1000);
+
+                const hEl = document.getElementById("hours");
+                const mEl = document.getElementById("minutes");
+                const sEl = document.getElementById("seconds");
+
+                if(hEl) hEl.innerText = String(hours).padStart(2, '0');
+                if(mEl) mEl.innerText = String(minutes).padStart(2, '0');
+                if(sEl) sEl.innerText = String(seconds).padStart(2, '0');
+            }
+
+            maintenanceTimerInterval = setInterval(updateTimer, 1000);
+            updateTimer();
         }
 
         function checkAndResetDailyLimit(userData) {
@@ -1167,7 +1389,6 @@
             const container = document.getElementById('taskListContainer');
             container.innerHTML = '';
 
-            // প্রথমে স্ট্যাটাস অনুযায়ী ফিল্টার করা এবং নতুন কাজগুলো সবার উপরে (Top) দেখানোর জন্য সর্টিং (Descending order) করা
             const filtered = currentTasksList.filter(t => {
                 let taskStatus = t.status ? t.status.toLowerCase().trim() : 'pending';
                 return taskStatus === status.toLowerCase().trim();
