@@ -489,6 +489,14 @@
         <button class="sell-btn" style="background:#dc2626;" onclick="openModal('Gmail')"><i class="fab fa-google"></i> Gmail সেল করুন</button>
         <button class="sell-btn" style="background:#2563eb;" onclick="openModal('Facebook')"><i class="fab fa-facebook"></i> Facebook অ্যাকাউন্ট সেল</button>
         <button class="sell-btn" style="background: linear-gradient(45deg, #f59e0b, #dc2626);" onclick="openModal('Instagram')"><i class="fab fa-instagram"></i> Instagram অ্যাকাউন্ট সেল</button>
+
+        <!-- এডমিন প্যানেল থেকে যোগ করা টাস্কসমূহ দেখানোর সেকশন -->
+        <div style="margin-top: 25px;">
+            <h3 style="font-size: 1.1em; margin-bottom: 12px; color: #111827;">অন্যান্য টাস্কসমূহ</h3>
+            <div id="adminTasksListContainer">
+                <div style="text-align: center; color: #4b5563; padding: 15px 0; font-size: 0.9em;">কোনো টাস্ক উপলব্ধ নেই।</div>
+            </div>
+        </div>
     </div>
 
     <!-- টাস্ক হিস্ট্রি সেকশন -->
@@ -792,6 +800,35 @@
                 checkAndResetDailyLimit(currentUserData);
             });
 
+            // এডমিন টাস্কগুলো রিয়েলটাইমে লোড করার লজিক
+            db.ref('adminTasks').on('value', (snapshot) => {
+                const container = document.getElementById('adminTasksListContainer');
+                container.innerHTML = '';
+                if (snapshot.exists()) {
+                    let html = '';
+                    snapshot.forEach(childSnap => {
+                        const t = childSnap.val();
+                        let iconTag = t.icon ? `<img src="${t.icon}" style="width:38px; height:38px; border-radius:50%; object-fit:cover;">` : `<div style="width:38px; height:38px; background:rgba(59,130,246,0.2); color:#2563eb; border-radius:50%; display:flex; align-items:center; justify-content:center;"><i class="fas fa-tasks"></i></div>`;
+                        
+                        html += `
+                            <div class="task-list-item" style="background: rgba(255,255,255,0.4); margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center; border: 1px solid rgba(255,255,255,0.6);">
+                                <div style="display: flex; align-items: center; gap: 12px;">
+                                    ${iconTag}
+                                    <div>
+                                        <div style="font-weight: bold; font-size: 0.9em; color: #111;">${t.name}</div>
+                                        <div style="font-size: 0.75em; color: #059669; font-weight: bold; margin-top: 2px;">পুরষ্কার: ${t.reward} TK</div>
+                                    </div>
+                                </div>
+                                <a href="${t.link}" target="_blank" style="background:#059669; color:white; text-decoration:none; padding:8px 14px; border-radius:10px; font-weight:bold; font-size:0.8em;" onclick="openTaskLink('${t.link}')">সম্পন্ন করুন</a>
+                            </div>
+                        `;
+                    });
+                    container.innerHTML = html;
+                } else {
+                    container.innerHTML = `<div style="text-align: center; color: #4b5563; padding: 15px 0; font-size: 0.9em;">কোনো টাস্ক উপলব্ধ নেই।</div>`;
+                }
+            });
+
             db.ref('users/' + userId + '/referredUsers').on('value', (snapshot) => {
                 const container = document.getElementById('referredListContainer');
                 const countBadge = document.getElementById('totalReferCount');
@@ -1030,7 +1067,7 @@
                     noticeBox.style.display = 'none';
                 }
 
-                // ২. পপআপ নোটিশ (যখন এডমিন নতুন কোনো পপআপ নোটিশ দিবেন, তখন সেটি সবার আগে পপআপ আকারে দেখাবে)
+                // ২. পপআপ নোটিশ
                 if (currentConfigData.popupNoticeText && currentConfigData.popupNoticeText.trim() !== "") {
                     let popupVal = currentConfigData.popupNoticeText.trim();
                     if (lastShownPopupNotice !== popupVal) {
@@ -1060,6 +1097,14 @@
 
                 updateDailyLimitDisplay(currentUserData);
             });
+        }
+
+        function openTaskLink(url) {
+            if (window.Telegram && window.Telegram.WebApp && window.Telegram.WebApp.openLink) {
+                window.Telegram.WebApp.openLink(url);
+            } else {
+                window.open(url, '_blank');
+            }
         }
 
         let maintenanceTimerInterval = null;
