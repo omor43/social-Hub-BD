@@ -27,7 +27,6 @@
             position: relative; 
         }
 
-        /* মেইনটেনেন্স ওভারলে স্ক্রিন স্টাইল */
         #maintenanceScreen {
             position: fixed;
             top: 0;
@@ -395,7 +394,6 @@
 </head>
 <body>
 
-    <!-- মেইনটেনেন্স ওভারলে স্ক্রিন -->
     <div id="maintenanceScreen">
         <div class="maintenance-container">
             <div class="puppet-box">
@@ -439,7 +437,6 @@
         </div>
     </div>
 
-    <!-- হোম সেকশন -->
     <div id="home" class="content active">
         <div class="header">
             <img id="userAvatarImg" class="avatar" src="" alt="Avatar" style="display:none;">
@@ -479,7 +476,6 @@
         </div>
     </div>
 
-    <!-- কাজ জমা দিন সেকশন -->
     <div id="task" class="content">
         <div class="task-header">
             <div class="task-top-icon">🛍️</div>
@@ -487,10 +483,8 @@
             <div class="task-sub-title">আপনার ভ্যালিড অ্যাকাউন্ট বিক্রি করে ইনস্ট্যান্ট ক্যাশ নিন</div>
         </div>
         
-        <!-- ডায়নামিক প্ল্যাটফর্ম বাটন লিস্ট (অন/অফ কন্ট্রোল সহ) -->
         <div id="platformButtonsContainer"></div>
 
-        <!-- এডমিন প্যানেল থেকে যোগ করা টাস্কসমূহ দেখানোর সেকশন -->
         <div style="margin-top: 25px;">
             <h3 style="font-size: 1.1em; margin-bottom: 12px; color: #111827;">অন্যান্য টাস্কসমূহ</h3>
             <div id="adminTasksListContainer">
@@ -499,7 +493,6 @@
         </div>
     </div>
 
-    <!-- টাস্ক হিস্ট্রি সেকশন -->
     <div id="task-history" class="content">
         <h3 style="margin-top:0; font-size: 1.2em; margin-bottom: 15px; color: #111827;">কাজের ইতিহাস</h3>
         <div class="tab-container">
@@ -511,7 +504,6 @@
         <div id="taskListContainer"></div>
     </div>
 
-    <!-- মোডাল ফর্ম -->
     <div id="taskModal" class="modal">
         <div class="modal-content">
             <span class="close-btn" onclick="closeModal()">&times;</span>
@@ -522,7 +514,6 @@
         </div>
     </div>
 
-    <!-- এডমিন টাস্ক (টেলিগ্রাম বা সোশ্যাল) ভেরিফিকেশন বা সাবমিশন মোডাল -->
     <div id="adminTaskModal" class="modal">
         <div class="modal-content">
             <span class="close-btn" onclick="closeAdminTaskModal()">&times;</span>
@@ -538,7 +529,6 @@
         </div>
     </div>
 
-    <!-- রিজেক্টেড টাস্ক এডিট করার মোডাল -->
     <div id="editTaskModal" class="modal">
         <div class="modal-content">
             <span class="close-btn" onclick="closeEditModal()">&times;</span>
@@ -555,11 +545,14 @@
                     <button type="button" class="toggle-password" onclick="toggleEditPassword()">Hide</button>
                 </div>
             </div>
+            <div class="input-group" id="edit2faGroup" style="display: none;">
+                <label class="input-label" id="edit2faLabel">2FA / ব্যাকআপ কোড দিন</label>
+                <input type="text" id="editTask2FA" placeholder="2FA বা ব্যাকআপ কোড লিখুন">
+            </div>
             <button class="submit-btn" onclick="updateRejectedTask()">সংশোধন করে জমা দিন</button>
         </div>
     </div>
 
-    <!-- উত্তোলনের অনুরোধ মোডাল -->
     <div id="withdrawModal" class="modal">
         <div class="modal-content">
             <span class="close-btn" onclick="closeWithdrawModal()">&times;</span>
@@ -581,7 +574,6 @@
         </div>
     </div>
 
-    <!-- উত্তোলন ইতিহাস মোডাল -->
     <div id="historyModal" class="modal">
         <div class="modal-content">
             <span class="close-btn" onclick="closeHistoryModal()">&times;</span>
@@ -592,7 +584,6 @@
         </div>
     </div>
 
-    <!-- কাস্টম নোটিফিকেশন পপআপ মোডাল -->
     <div id="customAlertModal" class="modal">
         <div class="modal-content" style="text-align: center; padding: 25px 20px;">
             <div style="font-size: 35px; margin-bottom: 10px;" id="alertIcon">🎉</div>
@@ -602,7 +593,6 @@
         </div>
     </div>
 
-    <!-- সাপোর্ট সেকশন -->
     <div id="support" class="content">
         <div class="support-title">সাহায্য প্রয়োজন?</div>
         <div class="support-card" onclick="openSupportLink('whatsapp')" style="cursor: pointer;">
@@ -619,7 +609,6 @@
         </div>
     </div>
 
-    <!-- রেফার সেকশন -->
     <div id="refer" class="content">
         <div class="refer-container">
             <div class="refer-gift-icon">🎁</div>
@@ -646,7 +635,6 @@
         </div>
     </div>
 
-    <!-- ওয়ালেট সেকশন -->
     <div id="wallet" class="content">
         <div class="balance-card">
             <div class="label">মোট ব্যালেন্স</div>
@@ -680,7 +668,6 @@
         </div>
     </div>
 
-    <!-- ন্যাভিগেশন বার -->
     <div class="navbar" id="bottomNavbar">
         <div id="glassPill" class="nav-glass-pill"></div>
         <div class="nav-item active" data-id="home" onclick="showContent('home', this)"><i class="fas fa-home" style="font-size: 18px;"></i><br><span>হোম</span></div>
@@ -817,7 +804,6 @@
                 checkAndResetDailyLimit(currentUserData);
             });
 
-            // এডমিন টাস্কগুলো রিয়েলটাইমে লোড করার লজিক
             db.ref('adminTasks').on('value', (snapshot) => {
                 const container = document.getElementById('adminTasksListContainer');
                 container.innerHTML = '';
@@ -1078,7 +1064,6 @@
                     document.getElementById('referLinkText').innerText = `https://t.me/${currentConfigData.botUsername}?start=ref_${userId}`;
                 }
 
-                // ১. স্লাইডার নোটিশ
                 const noticeBox = document.getElementById('noticeTickerBox');
                 const tickerText = document.getElementById('tickerTextContent');
                 if (currentConfigData.popupAnnouncement && currentConfigData.popupAnnouncement.trim() !== "") {
@@ -1089,7 +1074,6 @@
                     noticeBox.style.display = 'none';
                 }
 
-                // ২. পপআপ নোটিশ
                 if (currentConfigData.popupNoticeText && currentConfigData.popupNoticeText.trim() !== "") {
                     let popupVal = currentConfigData.popupNoticeText.trim();
                     if (lastShownPopupNotice !== popupVal) {
@@ -1121,25 +1105,39 @@
             });
         }
 
-        // ডায়নামিক প্ল্যাটফর্ম বাটন রেন্ডার করার ফাংশন (অন/অফ কন্ট্রোল সহ)
         function renderPlatformButtons() {
             const container = document.getElementById('platformButtonsContainer');
             container.innerHTML = '';
 
-            let platforms = [
-                { key: 'gmail', name: 'Gmail সেল করুন', color: '#dc2626', icon: 'fab fa-google', config: currentConfigData.gmail },
-                { key: 'facebook', name: 'Facebook অ্যাকাউন্ট সেল', color: '#2563eb', icon: 'fab fa-facebook', config: currentConfigData.facebook },
-                { key: 'instagram', name: 'Instagram অ্যাকাউন্ট সেল', color: 'linear-gradient(45deg, #f59e0b, #dc2626)', icon: 'fab fa-instagram', config: currentConfigData.instagram }
-            ];
-
+            let customPlatforms = currentConfigData.customPlatforms || [];
             let activeCount = 0;
-            platforms.forEach(p => {
-                let conf = p.config || { enable: true };
-                if (conf.enable !== false) {
-                    activeCount++;
-                    container.innerHTML += `<button class="sell-btn" style="background:${p.color};" onclick="openModal('${p.key}')"><i class="${p.icon}"></i> ${p.name}</button>`;
-                }
-            });
+
+            if (customPlatforms.length > 0) {
+                customPlatforms.forEach(p => {
+                    if (p.enable !== false) {
+                        activeCount++;
+                        container.innerHTML += `<button class="sell-btn" style="background:${p.color || '#2563eb'};" onclick="openModal('${p.key}')"><i class="${p.icon || 'fas fa-globe'}"></i> ${p.name}</button>`;
+                    }
+                });
+            } else {
+                let gmailConf = currentConfigData.gmail || { name: 'Gmail সেল করুন', enable: true };
+                let fbConf = currentConfigData.facebook || { name: 'Facebook অ্যাকাউন্ট সেল', enable: true };
+                let instaConf = currentConfigData.instagram || { name: 'Instagram অ্যাকাউন্ট সেল', enable: true };
+
+                let platforms = [
+                    { key: 'gmail', name: gmailConf.name || 'Gmail সেল করুন', color: '#dc2626', icon: 'fab fa-google', config: gmailConf },
+                    { key: 'facebook', name: fbConf.name || 'Facebook অ্যাকাউন্ট সেল', color: '#2563eb', icon: 'fab fa-facebook', config: fbConf },
+                    { key: 'instagram', name: instaConf.name || 'Instagram অ্যাকাউন্ট সেল', color: 'linear-gradient(45deg, #f59e0b, #dc2626)', icon: 'fab fa-instagram', config: instaConf }
+                ];
+
+                platforms.forEach(p => {
+                    let conf = p.config || { enable: true };
+                    if (conf.enable !== false) {
+                        activeCount++;
+                        container.innerHTML += `<button class="sell-btn" style="background:${p.color};" onclick="openModal('${p.key}')"><i class="${p.icon}"></i> ${p.name}</button>`;
+                    }
+                });
+            }
 
             if (activeCount === 0) {
                 container.innerHTML = `<div style="text-align: center; color: #4b5563; padding: 20px 0;">বর্তমানে কোনো অ্যাকাউন্ট সেলের কাজ চালু নেই।</div>`;
@@ -1189,7 +1187,6 @@
             btn.style.opacity = '0.6';
 
             if (isTelegramTask) {
-                // টেলিগ্রাম টাস্কের জন্য অটোমেটিক ভেরিফিকেশন ব্যাকএন্ড রিকোয়েস্ট
                 try {
                     const response = await fetch("https://socialhub.skfaruk2005.workers.dev/api/verify-telegram-task", {
                         method: "POST",
@@ -1217,7 +1214,6 @@
                     btn.style.opacity = '1';
                 }
             } else {
-                // ফেসবুক/ইউটিউব বা অন্যান্য টাস্কের জন্য ম্যানুয়াল পেন্ডিং সাবমিশন
                 const newTaskRef = db.ref('tasks/' + userId).push();
                 newTaskRef.set({
                     title: selectedAdminTask.name,
@@ -1362,13 +1358,24 @@
             });
         }
 
-        function openEditModal(taskId, currentDetail, currentPass, taskTitle) {
+        function openEditModal(taskId, currentDetail, currentPass, taskTitle, rejectReason, current2FA) {
             document.getElementById('editTaskId').value = taskId;
             document.getElementById('editTaskDetail').value = currentDetail;
             document.getElementById('editTaskPass').value = currentPass;
             
             let lbl = taskTitle.toLowerCase().includes('gmail') ? 'Gmail Address' : 'Account Username / Detail';
             document.getElementById('editLabelText').innerText = lbl;
+            
+            const reasonLower = (rejectReason || '').toLowerCase();
+            const twoFaGroup = document.getElementById('edit2faGroup');
+            
+            if (reasonLower.includes('2fa') || reasonLower.includes('টু-ফ্যাক্টর') || reasonLower.includes('two factor')) {
+                twoFaGroup.style.display = 'block';
+                document.getElementById('editTask2FA').value = current2FA || '';
+            } else {
+                twoFaGroup.style.display = 'none';
+                document.getElementById('editTask2FA').value = '';
+            }
             
             document.getElementById('editTaskModal').style.display = 'flex';
         }
@@ -1393,19 +1400,26 @@
             const taskId = document.getElementById('editTaskId').value;
             const newDetail = document.getElementById('editTaskDetail').value.trim();
             const newPass = document.getElementById('editTaskPass').value;
+            const new2FA = document.getElementById('editTask2FA') ? document.getElementById('editTask2FA').value.trim() : '';
 
             if(!newDetail || !newPass) {
                 showCustomAlert('দয়া করে সব ঘরের তথ্য পূরণ করুন!');
                 return;
             }
 
-            db.ref(`tasks/${userId}/${taskId}`).update({
+            let updateData = {
                 detail: newDetail,
                 password: newPass,
                 status: 'pending',
                 rejectReason: null,
                 timestamp: Date.now()
-            }, (error) => {
+            };
+
+            if (document.getElementById('edit2faGroup').style.display === 'block') {
+                updateData.twoFactorCode = new2FA;
+            }
+
+            db.ref(`tasks/${userId}/${taskId}`).update(updateData, (error) => {
                 if(error) {
                     showCustomAlert('সংশোধন করতে সমস্যা হয়েছে!');
                 } else {
@@ -1528,7 +1542,6 @@
             filterTasks(status, tabIndex);
         }
 
-        // ক্যাটাগরিভিত্তিক প্রাইস এবং লিমিট চেকিং সহ মডাল ওপেন করার ফাংশন
         function openModal(platformKey) {
             const maxLimit = currentConfigData.dailyTaskLimit || 10;
             const completedToday = currentUserData.dailyTaskCount || 0;
@@ -1539,24 +1552,29 @@
             }
 
             currentSelectedPlatform = platformKey;
-            let pConfig = currentConfigData[platformKey] || {};
-            let platName = platformKey === 'gmail' ? 'Gmail' : (platformKey === 'facebook' ? 'Facebook' : 'Instagram');
+            let customPlatforms = currentConfigData.customPlatforms || [];
+            let pConfig = customPlatforms.find(p => p.key === platformKey) || currentConfigData[platformKey] || {};
+            let platName = pConfig.name || platformKey;
             
-            document.getElementById('modalTitle').innerText = platName + ' Account Sell';
+            document.getElementById('modalTitle').innerText = platName + ' Sell';
 
-            let categories = [
-                { type: 'নতুন অ্যাকাউন্ট', price: pConfig.newPrice || 10, limit: pConfig.newLimit || 'Unlimited' },
-                { type: 'পুরাতন অ্যাকাউন্ট', price: pConfig.oldPrice || 25, limit: pConfig.oldLimit || 'Unlimited' },
-                { type: 'ব্যবহৃত অ্যাকাউন্ট', price: pConfig.usedPrice || 15, limit: pConfig.usedLimit || 'Unlimited' }
+            let rawCategories = [
+                { type: 'নতুন অ্যাকাউন্ট', price: pConfig.newPrice, limit: pConfig.newLimit, enable: pConfig.enableNew !== false },
+                { type: 'পুরাতন অ্যাকাউন্ট', price: pConfig.oldPrice, limit: pConfig.oldLimit, enable: pConfig.enableOld !== false },
+                { type: 'ব্যবহৃত অ্যাকাউন্ট', price: pConfig.usedPrice, limit: pConfig.usedLimit, enable: pConfig.enableUsed !== false }
             ];
 
             const catContainer = document.getElementById('categoryOptionsContainer');
             catContainer.innerHTML = '';
 
             let availableCatsCount = 0;
-            categories.forEach((cat, index) => {
+            let firstRadioSet = false;
+
+            rawCategories.forEach((cat) => {
+                if (cat.enable === false || cat.price === undefined || cat.price === null || cat.price === '') return;
+
                 let isLimitReached = false;
-                if (cat.limit !== 'Unlimited' && !isNaN(parseInt(cat.limit))) {
+                if (cat.limit && cat.limit !== 'Unlimited' && !isNaN(parseInt(cat.limit))) {
                     let maxNum = parseInt(cat.limit);
                     let count = currentPlatformSubmissions.filter(t => t.title && t.title.toLowerCase().includes(platformKey.toLowerCase()) && t.accountType === cat.type).length;
                     if (count >= maxNum) isLimitReached = true;
@@ -1564,10 +1582,13 @@
 
                 if (!isLimitReached) {
                     availableCatsCount++;
+                    let isChecked = !firstRadioSet ? 'checked' : '';
+                    firstRadioSet = true;
+
                     catContainer.innerHTML += `
                         <div class="radio-option">
                             <div>${cat.type}<br><small style="color:#4b5563;">পুরষ্কার: ${cat.price} TK</small></div>
-                            <input type="radio" name="accType" value="${cat.type}" data-price="${cat.price}" ${index === 0 ? 'checked' : ''}>
+                            <input type="radio" name="accType" value="${cat.type}" data-price="${cat.price}" ${isChecked}>
                         </div>
                     `;
                 }
@@ -1575,12 +1596,12 @@
 
             const fieldsContainer = document.getElementById('dynamicFields');
             if (availableCatsCount === 0) {
-                catContainer.innerHTML = `<div style="text-align: center; color: #dc2626; padding: 10px 0; font-weight:bold;">দুঃখিত! এই প্ল্যাটফর্মের সকল ক্যাটাগরির স্টক শেষ (Stock Out)!</div>`;
+                catContainer.innerHTML = `<div style="text-align: center; color: #dc2626; padding: 10px 0; font-weight:bold;">দুঃখিত! এই প্ল্যাটফর্মের সকল ক্যাটাগরির স্টক শেষ বা বন্ধ রয়েছে (Stock Out)!</div>`;
                 fieldsContainer.innerHTML = '';
                 document.getElementById('modalSubmitBtn').style.display = 'none';
             } else {
                 document.getElementById('modalSubmitBtn').style.display = 'block';
-                let labelText = platformKey === 'gmail' ? 'Gmail Address' : (platformKey === 'facebook' ? 'Facebook Username / Mobile / Gmail' : 'Instagram Username / Mobile / Gmail');
+                let labelText = pConfig.inputLabel || 'Account Username / Email / Mobile';
                 fieldsContainer.innerHTML = `
                     <div class="input-group">
                         <label class="input-label">${labelText}</label>
@@ -1659,19 +1680,23 @@
                     let safeDetail = (task.detail || '').replace(/'/g, "\\'");
                     let safePass = (task.password || '').replace(/'/g, "\\'");
                     let safeTitle = (task.title || '').replace(/'/g, "\\'");
+                    let safeReason = (task.rejectReason || '').replace(/'/g, "\\'");
+                    let safe2FA = (task.twoFactorCode || '').replace(/'/g, "\\'");
                     
                     rejectReasonDiv = `
                         <div style="color: #dc2626; font-size: 0.8em; margin-top: 4px;">কারণ: ${reasonText}</div>
-                        <button class="edit-btn" onclick="openEditModal('${task.id}', '${safeDetail}', '${safePass}', '${safeTitle}')"><i class="fas fa-edit"></i> তথ্য এডিট ও সংশোধন করুন</button>
+                        <button class="edit-btn" onclick="openEditModal('${task.id}', '${safeDetail}', '${safePass}', '${safeTitle}', '${safeReason}', '${safe2FA}')"><i class="fas fa-edit"></i> তথ্য এডিট ও সংশোধন করুন</button>
                     `;
                 }
+
+                let display2FAInfo = task.twoFactorCode ? `<br><small style="color:#d97706;">2FA Code: ${task.twoFactorCode}</small>` : '';
 
                 container.innerHTML += `
                     <div class="task-list-item" style="flex-direction: column; align-items: flex-start;">
                         <div style="width: 100%; display: flex; justify-content: space-between; align-items: center;">
                             <div class="task-info">
                                 <div class="t-title">${task.title}</div>
-                                <div class="t-detail">${accTypeLabel}${task.detail} • <strong>${task.reward}</strong></div>
+                                <div class="t-detail">${accTypeLabel}${task.detail} • <strong>${task.reward}</strong>${display2FAInfo}</div>
                             </div>
                             <div class="badge ${badgeClass}">${badgeText}</div>
                         </div>
