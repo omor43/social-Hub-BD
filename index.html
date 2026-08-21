@@ -758,7 +758,7 @@
         let hasShownFaWarningThisSession = false;
         let lastConfigString = "";
 
-        // ডাইনামিক লাইভ রেট ক্যালকুলেটর
+        // ডাইনামিক লাইভ রেট ক্যালকুলেটর (সংশোধিত ও নিখুঁত)[span_2](start_span)[span_2](end_span)
         function getTaskRate(task) {
             let customPlatforms = currentConfigData.customPlatforms || [];
             let matchedPlat = customPlatforms.find(p => 
@@ -770,9 +770,9 @@
             if (matchedPlat) {
                 rRate = parseFloat(matchedPlat.newPrice) || 10;
                 if (task.accountType && task.accountType.includes('পুরাতন')) {
-                    rRate = parseFloat(matchedPlat.oldPrice) !== undefined ? parseFloat(matchedPlat.oldPrice) : rRate;
+                    rRate = (matchedPlat.oldPrice !== undefined && matchedPlat.oldPrice !== '') ? parseFloat(matchedPlat.oldPrice) : rRate;
                 } else if (task.accountType && task.accountType.includes('ব্যবহৃত')) {
-                    rRate = parseFloat(matchedPlat.usedPrice) !== undefined ? parseFloat(matchedPlat.usedPrice) : rRate;
+                    rRate = (matchedPlat.usedPrice !== undefined && matchedPlat.usedPrice !== '') ? parseFloat(matchedPlat.usedPrice) : rRate;
                 }
             } else {
                 let pKey = 'gmail';
@@ -780,12 +780,13 @@
                 else if (task.title && task.title.toLowerCase().includes('instagram')) pKey = 'instagram';
 
                 let pConfig = currentConfigData[pKey] || {};
+                
                 if (task.accountType && task.accountType.includes('পুরাতন')) {
-                    rRate = pConfig.oldPrice ?? 25;
+                    rRate = (pConfig.oldPrice !== undefined && pConfig.oldPrice !== '') ? parseFloat(pConfig.oldPrice) : 25;
                 } else if (task.accountType && task.accountType.includes('ব্যবহৃত')) {
-                    rRate = pConfig.usedPrice ?? 15;
+                    rRate = (pConfig.usedPrice !== undefined && pConfig.usedPrice !== '') ? parseFloat(pConfig.usedPrice) : 15;
                 } else {
-                    rRate = pConfig.newPrice ?? 10;
+                    rRate = (pConfig.newPrice !== undefined && pConfig.newPrice !== '') ? parseFloat(pConfig.newPrice) : 10;
                 }
             }
             return parseFloat(rRate) || 0;
@@ -801,6 +802,7 @@
             document.getElementById('faWarningModal').style.display = 'none';
         }
 
+        // প্রিমিয়াম কার্ড স্টাইল ও গ্রাফসহ রেট আপডেট পপআপ[span_3](start_span)[span_3](end_span)
         function showCustomAlert(message, type = 'success') {
             const textElem = document.getElementById('customAlertText');
             const iconElem = document.getElementById('alertIcon');
@@ -828,15 +830,24 @@
                             let graphIcon = newPrice > oldPrice ? '📈' : '📉';
                             let cleanLabel = leftPart.replace(/•/g, '').replace(/:\s*\d+\s*৳/, '').trim();
                             
-                            return `⚡ ${cleanLabel}<br>&nbsp;&nbsp;&nbsp;&nbsp;❌ পুরোনো: ${oldPrice} ৳ ➔ ✨ বর্তমান: ${newPrice} ৳  ${graphIcon}`;
+                            return `
+                                <div style="background: rgba(255, 255, 255, 0.7); border: 1px solid rgba(37, 99, 235, 0.2); padding: 10px 14px; border-radius: 12px; margin-bottom: 8px; text-align: left; box-shadow: 0 2px 5px rgba(0,0,0,0.02);">
+                                    <div style="font-weight: bold; color: #1f2937; margin-bottom: 6px; font-size: 0.9em;">⚡ ${cleanLabel}</div>
+                                    <div style="display: flex; justify-content: space-between; align-items: center; font-size: 0.85em;">
+                                        <span style="color: #dc2626; font-weight: 600;">❌ পুরোনো: ${oldPrice} ৳</span>
+                                        <span style="color: #9ca3af;">➔</span>
+                                        <span style="color: #059669; font-weight: 700;">✨ বর্তমান: ${newPrice} ৳ ${graphIcon}</span>
+                                    </div>
+                                </div>
+                            `;
                         }
                     }
                     return line;
-                }).join('<br><br>');
+                }).join('');
 
-                let formattedMsg = `<div style="font-size: 0.88em; color: #374151; margin-bottom: 10px; font-weight: 600;">🔔 প্ল্যাটফর্মের রেটে নতুন আপডেট এসেছে:</div>`;
-                formattedMsg += `<div style="background: rgba(37, 99, 235, 0.05); border: 1.5px solid rgba(37, 99, 235, 0.2); padding: 14px; border-radius: 16px; text-align: left; font-size: 0.85em; color: #1f2937; line-height: 1.7; margin-bottom: 12px; box-shadow: inset 0 2px 6px rgba(0,0,0,0.02);">${formattedLines}</div>`;
-                formattedMsg += `<div style="font-size: 0.85em; color: #059669; font-weight: 700;">🚀 আপডেটকৃত রেটে কাজ শুরু করুন!</div>`;
+                let formattedMsg = `<div style="font-size: 0.85em; color: #4b5563; margin-bottom: 10px; font-weight: 600; text-align: left;">🔔 প্ল্যাটফর্মের রেটে নতুন আপডেট এসেছে:</div>`;
+                formattedMsg += `<div style="max-height: 200px; overflow-y: auto; margin-bottom: 12px;">${formattedLines}</div>`;
+                formattedMsg += `<div style="font-size: 0.82em; color: #059669; font-weight: 700; background: rgba(5, 150, 105, 0.1); padding: 8px; border-radius: 8px;">🚀 আপডেটকৃত রেটে কাজ শুরু করুন!</div>`;
                 
                 textElem.innerHTML = formattedMsg;
             } else {
