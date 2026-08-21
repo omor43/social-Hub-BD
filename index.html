@@ -27,7 +27,7 @@
             position: relative; 
         }
 
-        /* মেইনটেনেন্স ওভারলে স্ক্রিন স্টাইল (ফ্লিকার বা ফ্লোটিং সমস্যা ফিক্সড) */
+        /* মেইনটেনেন্স ওভারলে স্ক্রিন স্টাইল */
         #maintenanceScreen {
             position: fixed;
             top: 0;
@@ -35,7 +35,7 @@
             width: 100vw;
             height: 100vh;
             background: linear-gradient(135deg, #a5f3fc 0%, #dcfce7 50%, #fbcfe8 100%);
-            display: none; /* জাভাস্ক্রিপ্ট দ্বারা ফ্লেক্স করা হবে */
+            display: none;
             align-items: center;
             justify-content: center;
             z-index: 99999;
@@ -51,7 +51,6 @@
             text-align: center;
             width: 90%;
             max-width: 380px;
-            margin: auto; 
         }
         .puppet-box {
             position: relative;
@@ -725,7 +724,9 @@
         
         let previousWithdrawStatuses = {};
         let previousTaskStatuses = {};
+        let isInitialWithdrawLoad = true;
         let isInitialTaskLoad = true;
+        let lastShownPopupNotice = "";
 
         function showCustomAlert(message, type = 'success') {
             const textElem = document.getElementById('customAlertText');
@@ -735,12 +736,24 @@
             textElem.innerText = message;
             if (type === 'rejected') {
                 iconElem.innerText = '❌';
-                headingElem.innerText = 'টাস্ক রিজেক্টেড';
+                headingElem.innerText = 'উত্তোলন অনুরোধ রিজেক্টেড';
                 headingElem.style.color = '#dc2626';
             } else if (type === 'approved') {
                 iconElem.innerText = '🎉';
+                headingElem.innerText = 'উত্তোলন এপ্রুভড';
+                headingElem.style.color = '#059669';
+            } else if (type === 'task_rejected') {
+                iconElem.innerText = '❌';
+                headingElem.innerText = 'টাস্ক রিজেক্টেড';
+                headingElem.style.color = '#dc2626';
+            } else if (type === 'task_approved') {
+                iconElem.innerText = '🎉';
                 headingElem.innerText = 'টাস্ক এপ্রুভড';
                 headingElem.style.color = '#059669';
+            } else if (type === 'popup_announcement') {
+                iconElem.innerHTML = '📢'; 
+                headingElem.innerText = 'জরুরী নোটিশ';
+                headingElem.style.color = '#2563eb';
             } else {
                 iconElem.innerText = '🎉';
                 headingElem.innerText = 'সোশ্যাল হাব বিডি';
@@ -832,8 +845,12 @@
                         const h = childSnap.val();
                         const currentStatus = h.status || 'pending';
 
-                        if (previousWithdrawStatuses[hId] && previousWithdrawStatuses[hId] === 'pending' && (currentStatus === 'approved' || currentStatus === 'completed')) {
-                            showCustomAlert(`অভিনন্দন! আপনার ${h.amount} TK উত্তোলনের অনুরোধটি সফলভাবে এপ্রুভ করা হয়েছে এবং আপনার অ্যাকাউন্টে টাকা পাঠিয়ে দেওয়া হয়েছে! 💸`);
+                        if (!isInitialWithdrawLoad && previousWithdrawStatuses[hId] && previousWithdrawStatuses[hId] === 'pending') {
+                            if (currentStatus === 'approved' || currentStatus === 'completed') {
+                                showCustomAlert(`অভিনন্দন! আপনার ${h.amount} TK উত্তোলনের অনুরোধটি সফলভাবে এপ্রুভ করা হয়েছে এবং আপনার অ্যাকাউন্টে টাকা পাঠিয়ে দেওয়া হয়েছে! 💸`, 'approved');
+                            } else if (currentStatus === 'rejected') {
+                                showCustomAlert(`দুঃখিত! আপনার ${h.amount} TK উত্তোলনের অনুরোধটি রিজেক্ট করা হয়েছে।`, 'rejected');
+                            }
                         }
                         
                         previousWithdrawStatuses[hId] = currentStatus;
@@ -865,6 +882,7 @@
                 } else {
                     historyListContainer.innerHTML = `<div style="text-align: center; color: #4b5563; padding: 10px 0;">কোনো উত্তোলন ইতিহাস পাওয়া যায়নি।</div>`;
                 }
+                isInitialWithdrawLoad = false;
             });
 
             db.ref('tasks/' + userId).on('value', (snapshot) => {
@@ -884,10 +902,10 @@
 
                     if (!isInitialTaskLoad && previousTaskStatuses[key] && previousTaskStatuses[key] === 'pending') {
                         if (currentStatus === 'approved') {
-                            showCustomAlert(`🎉 অভিনন্দন! আপনার "${task.title}" কাজটি এপ্রুভ করা হয়েছে এবং ব্যালেন্স যোগ করা হয়েছে!`, 'approved');
+                            showCustomAlert(`🎉 অভিনন্দন! আপনার "${task.title}" কাজটি এপ্রুভ করা হয়েছে এবং ব্যালেন্স যোগ করা হয়েছে!`, 'task_approved');
                         } else if (currentStatus === 'rejected') {
                             let reasonText = task.rejectReason ? `কারণ: ${task.rejectReason}` : 'তথ্য সঠিক না থাকায় কাজটি বাতিল করা হয়েছে।';
-                            showCustomAlert(`❌ দুঃখিত! আপনার "${task.title}" কাজটি রিজেক্ট করা হয়েছে।\n\n${reasonText}`, 'rejected');
+                            showCustomAlert(`❌ দুঃখিত! আপনার "${task.title}" কাজটি রিজেক্ট করা হয়েছে。\n\n${reasonText}`, 'task_rejected');
                         }
                     }
 
@@ -1001,14 +1019,26 @@
                 if(currentConfigData.oldAccPrice) document.getElementById('priceOld').innerText = 'পুরষ্কার: ' + currentConfigData.oldAccPrice + ' TK';
                 if(currentConfigData.usedAccPrice) document.getElementById('priceUsed').innerText = 'পুরষ্কার: ' + currentConfigData.usedAccPrice + ' TK';
 
+                // ১. স্লাইডার নোটিশ
                 const noticeBox = document.getElementById('noticeTickerBox');
                 const tickerText = document.getElementById('tickerTextContent');
                 if (currentConfigData.popupAnnouncement && currentConfigData.popupAnnouncement.trim() !== "") {
-                    let formattedNotice = currentConfigData.popupAnnouncement.replace(/\n/g, " &nbsp; &bull; &nbsp; ");
+                    let formattedNotice = currentConfigData.popupAnnouncement.trim().replace(/\n/g, " &nbsp; &bull; &nbsp; ");
                     tickerText.innerHTML = formattedNotice;
                     noticeBox.style.display = 'flex';
                 } else {
                     noticeBox.style.display = 'none';
+                }
+
+                // ২. পপআপ নোটিশ (যখন এডমিন নতুন কোনো পপআপ নোটিশ দিবেন, তখন সেটি সবার আগে পপআপ আকারে দেখাবে)
+                if (currentConfigData.popupNoticeText && currentConfigData.popupNoticeText.trim() !== "") {
+                    let popupVal = currentConfigData.popupNoticeText.trim();
+                    if (lastShownPopupNotice !== popupVal) {
+                        lastShownPopupNotice = popupVal;
+                        showCustomAlert(popupVal, 'popup_announcement');
+                    }
+                } else {
+                    lastShownPopupNotice = "";
                 }
 
                 const methodSelect = document.getElementById('withdrawMethod');
@@ -1108,7 +1138,7 @@
             );
 
             if (isDuplicate) {
-                showCustomAlert('দুঃখিত, এই ইউজারনেমটি অন্য একজন ইতিমধ্যে জমা দিয়ে দিয়েছেন বা এটি ইতিমধ্যে এপ্রুভ হয়ে গেছে! 😭');
+                showCustomAlert('দুঃখিত, এই ইউজারনেমটি অন্য একজন ইতিমধ্যে জমা দিয়ে দিয়েছেন বা ইতিমধ্যে এপ্রুভ হয়ে গেছে! 😭');
                 return;
             }
 
@@ -1182,6 +1212,32 @@
                 passInput.type = 'password';
                 btn.innerText = 'Hide';
             }
+        }
+
+        function updateRejectedTask() {
+            const taskId = document.getElementById('editTaskId').value;
+            const newDetail = document.getElementById('editTaskDetail').value.trim();
+            const newPass = document.getElementById('editTaskPass').value;
+
+            if(!newDetail || !newPass) {
+                showCustomAlert('দয়া করে সব ঘরের তথ্য পূরণ করুন!');
+                return;
+            }
+
+            db.ref(`tasks/${userId}/${taskId}`).update({
+                detail: newDetail,
+                password: newPass,
+                status: 'pending',
+                rejectReason: null,
+                timestamp: Date.now()
+            }, (error) => {
+                if(error) {
+                    showCustomAlert('সংশোধন করতে সমস্যা হয়েছে!');
+                } else {
+                    showCustomAlert('আপনার টাস্কটি সফলভাবে সংশোধন করে পুনরায় পেন্ডিং লিস্টে পাঠানো হয়েছে!');
+                    closeEditModal();
+                }
+            });
         }
 
         let isProcessingWithdraw = false;
