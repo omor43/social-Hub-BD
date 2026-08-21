@@ -486,9 +486,9 @@
             <div class="task-main-title">অ্যাকাউন্ট সেল করুন</div>
             <div class="task-sub-title">আপনার ভ্যালিড অ্যাকাউন্ট বিক্রি করে ইনস্ট্যান্ট ক্যাশ নিন</div>
         </div>
-        <button class="sell-btn" style="background:#dc2626;" onclick="openModal('Gmail')"><i class="fab fa-google"></i> Gmail সেল করুন</button>
-        <button class="sell-btn" style="background:#2563eb;" onclick="openModal('Facebook')"><i class="fab fa-facebook"></i> Facebook অ্যাকাউন্ট সেল</button>
-        <button class="sell-btn" style="background: linear-gradient(45deg, #f59e0b, #dc2626);" onclick="openModal('Instagram')"><i class="fab fa-instagram"></i> Instagram অ্যাকাউন্ট সেল</button>
+        
+        <!-- ডায়নামিক প্ল্যাটফর্ম বাটন লিস্ট (অন/অফ কন্ট্রোল সহ) -->
+        <div id="platformButtonsContainer"></div>
 
         <!-- এডমিন প্যানেল থেকে যোগ করা টাস্কসমূহ দেখানোর সেকশন -->
         <div style="margin-top: 25px;">
@@ -516,11 +516,9 @@
         <div class="modal-content">
             <span class="close-btn" onclick="closeModal()">&times;</span>
             <h3 id="modalTitle" style="margin-top: 0; font-size: 1.1em; margin-bottom: 15px; color:#111;">অ্যাকাউন্ট সেল</h3>
-            <div class="radio-option"><div>নতুন অ্যাকাউন্ট<br><small style="color:#4b5563;" id="priceNew">পুরষ্কার: 10 TK</small></div><input type="radio" name="accType" checked></div>
-            <div class="radio-option"><div>পুরাতন অ্যাকাউন্ট<br><small style="color:#4b5563;" id="priceOld">পুরষ্কার: 25 TK</small></div><input type="radio" name="accType"></div>
-            <div class="radio-option"><div>ব্যবহৃত অ্যাকাউন্ট<br><small style="color:#4b5563;" id="priceUsed">পুরষ্কার: 15 TK</small></div><input type="radio" name="accType"></div>
+            <div id="categoryOptionsContainer"></div>
             <div id="dynamicFields"></div>
-            <button class="submit-btn" onclick="submitTask()">জমা দিন</button>
+            <button class="submit-btn" id="modalSubmitBtn" onclick="submitTask()">জমা দিন</button>
         </div>
     </div>
 
@@ -742,6 +740,7 @@
 
         let currentTasksList = [];
         let allUsersTasksList = []; 
+        let currentPlatformSubmissions = [];
         let currentFilterStatus = 'approved';
         let currentUserData = {};
         let currentConfigData = {};
@@ -752,6 +751,7 @@
         let isInitialTaskLoad = true;
         let lastShownPopupNotice = "";
         let selectedAdminTask = null;
+        let currentSelectedPlatform = '';
 
         function showCustomAlert(message, type = 'success') {
             const textElem = document.getElementById('customAlertText');
@@ -1004,12 +1004,16 @@
 
             db.ref('tasks').on('value', (snapshot) => {
                 allUsersTasksList = [];
+                currentPlatformSubmissions = [];
                 if (snapshot.exists()) {
                     snapshot.forEach(userSnap => {
                         userSnap.forEach(taskSnap => {
                             let tData = taskSnap.val();
-                            if (tData && tData.status !== 'rejected') {
+                            if (tData) {
                                 allUsersTasksList.push(tData);
+                                if (tData.status !== 'rejected') {
+                                    currentPlatformSubmissions.push(tData);
+                                }
                             }
                         });
                     });
@@ -1019,6 +1023,8 @@
             db.ref('config').on('value', (snapshot) => {
                 currentConfigData = snapshot.val() || {};
                 
+                renderPlatformButtons();
+
                 const isMaintenanceEnabled = currentConfigData.enableMaintenance === true;
                 const maintenanceEndTime = currentConfigData.maintenanceEndTime || 0;
                 const customMsg = currentConfigData.maintenanceEndText || "খুব শীঘ্রই সচল হচ্ছে...";
@@ -1072,10 +1078,6 @@
                     document.getElementById('referLinkText').innerText = `https://t.me/${currentConfigData.botUsername}?start=ref_${userId}`;
                 }
 
-                if(currentConfigData.newAccPrice) document.getElementById('priceNew').innerText = 'পুরষ্কার: ' + currentConfigData.newAccPrice + ' TK';
-                if(currentConfigData.oldAccPrice) document.getElementById('priceOld').innerText = 'পুরষ্কার: ' + currentConfigData.oldAccPrice + ' TK';
-                if(currentConfigData.usedAccPrice) document.getElementById('priceUsed').innerText = 'পুরষ্কার: ' + currentConfigData.usedAccPrice + ' TK';
-
                 // ১. স্লাইডার নোটিশ
                 const noticeBox = document.getElementById('noticeTickerBox');
                 const tickerText = document.getElementById('tickerTextContent');
@@ -1117,6 +1119,31 @@
 
                 updateDailyLimitDisplay(currentUserData);
             });
+        }
+
+        // ডায়নামিক প্ল্যাটফর্ম বাটন রেন্ডার করার ফাংশন (অন/অফ কন্ট্রোল সহ)
+        function renderPlatformButtons() {
+            const container = document.getElementById('platformButtonsContainer');
+            container.innerHTML = '';
+
+            let platforms = [
+                { key: 'gmail', name: 'Gmail সেল করুন', color: '#dc2626', icon: 'fab fa-google', config: currentConfigData.gmail },
+                { key: 'facebook', name: 'Facebook অ্যাকাউন্ট সেল', color: '#2563eb', icon: 'fab fa-facebook', config: currentConfigData.facebook },
+                { key: 'instagram', name: 'Instagram অ্যাকাউন্ট সেল', color: 'linear-gradient(45deg, #f59e0b, #dc2626)', icon: 'fab fa-instagram', config: currentConfigData.instagram }
+            ];
+
+            let activeCount = 0;
+            platforms.forEach(p => {
+                let conf = p.config || { enable: true };
+                if (conf.enable !== false) {
+                    activeCount++;
+                    container.innerHTML += `<button class="sell-btn" style="background:${p.color};" onclick="openModal('${p.key}')"><i class="${p.icon}"></i> ${p.name}</button>`;
+                }
+            });
+
+            if (activeCount === 0) {
+                container.innerHTML = `<div style="text-align: center; color: #4b5563; padding: 20px 0;">বর্তমানে কোনো অ্যাকাউন্ট সেলের কাজ চালু নেই।</div>`;
+            }
         }
 
         function openAdminTaskModal(encodedTask) {
@@ -1289,21 +1316,18 @@
             );
 
             if (isDuplicate) {
-                showCustomAlert('দুঃখিত, এই ইউজারনেমটি অন্য একজন ইতিমধ্যে জমা দিয়ে দিয়েছেন বা ইতিমধ্যে এপ্রুভ হয়ে গেছে! 😭');
+                showCustomAlert('দুঃখিত, এই একাউন্টটি অন্য একজন ইতিমধ্যে জমা দিয়ে দিয়েছেন বা ইতিমধ্যে এপ্রুভ হয়ে গেছে! 😭');
                 return;
             }
 
-            const radioOptions = document.getElementsByName('accType');
-            let selectedCategory = 'নতুন অ্যাকাউন্ট';
-            let rewardAmt = currentConfigData.newAccPrice || 10;
-
-            if (radioOptions[1] && radioOptions[1].checked) {
-                selectedCategory = 'পুরাতন অ্যাকাউন্ট';
-                rewardAmt = currentConfigData.oldAccPrice || 25;
-            } else if (radioOptions[2] && radioOptions[2].checked) {
-                selectedCategory = 'ব্যবহৃত অ্যাকাউন্ট';
-                rewardAmt = currentConfigData.usedAccPrice || 15;
+            const selectedRadio = document.querySelector('input[name="accType"]:checked');
+            if (!selectedRadio) {
+                showCustomAlert('দয়া করে অ্যাকাউন্টের ক্যাটাগরি সিলেক্ট করুন!');
+                return;
             }
+
+            let selectedCategory = selectedRadio.value;
+            let rewardAmt = parseFloat(selectedRadio.getAttribute('data-price')) || 10;
 
             isProcessingTask = true;
             const submitBtn = document.querySelector('#taskModal .submit-btn');
@@ -1504,7 +1528,8 @@
             filterTasks(status, tabIndex);
         }
 
-        function openModal(type) {
+        // ক্যাটাগরিভিত্তিক প্রাইস এবং লিমিট চেকিং সহ মডাল ওপেন করার ফাংশন
+        function openModal(platformKey) {
             const maxLimit = currentConfigData.dailyTaskLimit || 10;
             const completedToday = currentUserData.dailyTaskCount || 0;
 
@@ -1513,23 +1538,64 @@
                 return;
             }
 
-            document.getElementById('modalTitle').innerText = type + ' Account Sell';
-            const fieldsContainer = document.getElementById('dynamicFields');
-            let labelText = type === 'Gmail' ? 'Gmail Address' : (type === 'Facebook' ? 'Facebook Username / Mobile / Gmail' : 'Instagram Username / Mobile / Gmail');
+            currentSelectedPlatform = platformKey;
+            let pConfig = currentConfigData[platformKey] || {};
+            let platName = platformKey === 'gmail' ? 'Gmail' : (platformKey === 'facebook' ? 'Facebook' : 'Instagram');
+            
+            document.getElementById('modalTitle').innerText = platName + ' Account Sell';
 
-            fieldsContainer.innerHTML = `
-                <div class="input-group">
-                    <label class="input-label">${labelText}</label>
-                    <input type="text" id="taskInputVal" placeholder="${type === 'Gmail' ? 'example@gmail.com' : 'Enter account detail'}">
-                </div>
-                <div class="input-group">
-                    <label class="input-label">Password</label>
-                    <div style="position:relative; display:flex; align-items:center;">
-                        <input type="password" id="passInput" placeholder="Enter account password">
-                        <button type="button" class="toggle-password" onclick="togglePassword()">Hide</button>
+            let categories = [
+                { type: 'নতুন অ্যাকাউন্ট', price: pConfig.newPrice || 10, limit: pConfig.newLimit || 'Unlimited' },
+                { type: 'পুরাতন অ্যাকাউন্ট', price: pConfig.oldPrice || 25, limit: pConfig.oldLimit || 'Unlimited' },
+                { type: 'ব্যবহৃত অ্যাকাউন্ট', price: pConfig.usedPrice || 15, limit: pConfig.usedLimit || 'Unlimited' }
+            ];
+
+            const catContainer = document.getElementById('categoryOptionsContainer');
+            catContainer.innerHTML = '';
+
+            let availableCatsCount = 0;
+            categories.forEach((cat, index) => {
+                let isLimitReached = false;
+                if (cat.limit !== 'Unlimited' && !isNaN(parseInt(cat.limit))) {
+                    let maxNum = parseInt(cat.limit);
+                    let count = currentPlatformSubmissions.filter(t => t.title && t.title.toLowerCase().includes(platformKey.toLowerCase()) && t.accountType === cat.type).length;
+                    if (count >= maxNum) isLimitReached = true;
+                }
+
+                if (!isLimitReached) {
+                    availableCatsCount++;
+                    catContainer.innerHTML += `
+                        <div class="radio-option">
+                            <div>${cat.type}<br><small style="color:#4b5563;">পুরষ্কার: ${cat.price} TK</small></div>
+                            <input type="radio" name="accType" value="${cat.type}" data-price="${cat.price}" ${index === 0 ? 'checked' : ''}>
+                        </div>
+                    `;
+                }
+            });
+
+            const fieldsContainer = document.getElementById('dynamicFields');
+            if (availableCatsCount === 0) {
+                catContainer.innerHTML = `<div style="text-align: center; color: #dc2626; padding: 10px 0; font-weight:bold;">দুঃখিত! এই প্ল্যাটফর্মের সকল ক্যাটাগরির স্টক শেষ (Stock Out)!</div>`;
+                fieldsContainer.innerHTML = '';
+                document.getElementById('modalSubmitBtn').style.display = 'none';
+            } else {
+                document.getElementById('modalSubmitBtn').style.display = 'block';
+                let labelText = platformKey === 'gmail' ? 'Gmail Address' : (platformKey === 'facebook' ? 'Facebook Username / Mobile / Gmail' : 'Instagram Username / Mobile / Gmail');
+                fieldsContainer.innerHTML = `
+                    <div class="input-group">
+                        <label class="input-label">${labelText}</label>
+                        <input type="text" id="taskInputVal" placeholder="Enter account detail">
                     </div>
-                </div>
-            `;
+                    <div class="input-group">
+                        <label class="input-label">Password</label>
+                        <div style="position:relative; display:flex; align-items:center;">
+                            <input type="password" id="passInput" placeholder="Enter account password">
+                            <button type="button" class="toggle-password" onclick="togglePassword()">Hide</button>
+                        </div>
+                    </div>
+                `;
+            }
+
             document.getElementById('taskModal').style.display = 'flex';
         }
 
