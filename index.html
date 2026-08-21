@@ -92,11 +92,14 @@
             color: #111827;
             margin-bottom: 6px;
         }
+        /* আপডেট করা মেইনটেনেন্স কাস্টম মেসেজ স্টাইল */
         .m-desc {
-            font-size: 0.8em;
-            color: #4b5563;
-            line-height: 1.4;
-            margin-bottom: 15px;
+            font-size: 1.1em;
+            font-weight: bold;
+            color: #059669;
+            line-height: 1.5;
+            margin-bottom: 20px;
+            text-align: center;
         }
         .timer-box {
             background: rgba(255, 255, 255, 0.6);
@@ -401,9 +404,9 @@
             </div>
             
             <div class="m-title">সিস্টেম আপডেট চলছে!</div>
-            <div class="m-desc">বটের পারফরম্যান্স উন্নত করতে আমাদের টেকনিক্যাল টিম কাজ করছে। নির্দিষ্ট সময়ের মধ্যে সবকিছু আবার সচল হবে।</div>
+            <div class="m-desc" id="maintenanceCustomDesc">বটের পারফরম্যান্স উন্নত করতে আমাদের টেকনিক্যাল টিম কাজ করছে। নির্দিষ্ট সময়ের মধ্যে সবকিছু আবার সচল হবে।</div>
             
-            <div class="timer-box" id="countdownTimer">
+            <div class="timer-box" id="countdownTimerBox">
                 <div class="time-segment">
                     <div class="time-value" id="hours">00</div>
                     <div class="time-label">ঘণ্টা</div>
@@ -937,27 +940,28 @@
                 }
             });
 
-            // কনফিগারেশন এবং মেইনটেনেন্স স্ট্যাটাস চেক ও অটো-অফ লজিক
             db.ref('config').on('value', (snapshot) => {
                 currentConfigData = snapshot.val() || {};
                 
-                // মেইনটেনেন্স চেক ও অটো-অফ হ্যান্ডলিং
                 const isMaintenanceEnabled = currentConfigData.enableMaintenance === true;
                 const maintenanceEndTime = currentConfigData.maintenanceEndTime || 0;
+                const customMsg = currentConfigData.maintenanceEndText || "খুব শীঘ্রই সচল হচ্ছে...";
                 const currentTime = new Date().getTime();
 
-                if (isMaintenanceEnabled && currentTime < maintenanceEndTime) {
-                    // টাইম শেষ না হওয়া পর্যন্ত মেইনটেনেন্স স্ক্রিন অন থাকবে
+                const descEl = document.querySelector('.m-desc');
+                if(descEl) descEl.innerText = customMsg;
+
+                if (isMaintenanceEnabled) {
                     document.getElementById('maintenanceScreen').style.display = 'flex';
-                    startMaintenanceCountdown(maintenanceEndTime);
-                } else {
-                    // টাইম শেষ হয়ে গেলে বা এডমিন অফ করলে অটোমেটিক মেইনটেনেন্স স্ক্রিন হাইড হয়ে যাবে
-                    document.getElementById('maintenanceScreen').style.display = 'none';
                     
-                    // যদি টাইম ওভার হয়ে যাওয়ার কারণে অন থাকে, তবে ফায়ারবেসে অটো অফ আপডেট করে দেওয়া নিরাপদ
-                    if (isMaintenanceEnabled && currentTime >= maintenanceEndTime) {
-                        db.ref('config').update({ enableMaintenance: false });
+                    if (maintenanceEndTime > currentTime) {
+                        document.getElementById('countdownTimerBox').style.display = 'flex';
+                        startMaintenanceCountdown(maintenanceEndTime);
+                    } else {
+                        document.getElementById('countdownTimerBox').style.display = 'none';
                     }
+                } else {
+                    document.getElementById('maintenanceScreen').style.display = 'none';
                 }
 
                 const isReferEnabled = currentConfigData.enableRefer !== false;
@@ -1027,7 +1031,6 @@
             });
         }
 
-        // মেইনটেনেন্স কাউন্টডাউন টাইমার ফাংশন এবং অটো-অফ হ্যান্ডলার
         let maintenanceTimerInterval = null;
         function startMaintenanceCountdown(targetTime) {
             if (maintenanceTimerInterval) clearInterval(maintenanceTimerInterval);
@@ -1037,11 +1040,8 @@
                 const distance = targetTime - now;
 
                 if (distance < 0) {
-                    document.getElementById("countdownTimer").innerHTML = "<div style='color:#059669; font-weight:bold;'>খুব শীঘ্রই সচল হচ্ছে...</div>";
+                    document.getElementById("countdownTimerBox").style.display = 'none';
                     clearInterval(maintenanceTimerInterval);
-                    // টাইম শেষ হলে অটোমেটিক স্ক্রিন হাইড ও ডাটাবেজ আপডেট
-                    document.getElementById('maintenanceScreen').style.display = 'none';
-                    db.ref('config').update({ enableMaintenance: false });
                     return;
                 }
 
