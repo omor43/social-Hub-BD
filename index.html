@@ -796,7 +796,16 @@
         let hasShownFaWarningThisSession = false;
         let lastConfigString = "";
 
+        // ফিক্সড রেট লজিক: টাস্কে অলরেডি সেভ করা rewardAmount থাকলে সেটাই নেবে, না থাকলে বর্তমান কনফিগারেশন থেকে নির্ধারণ করবে
         function getTaskRate(task) {
+            if (task.rewardAmount !== undefined && task.rewardAmount !== null) {
+                return parseFloat(task.rewardAmount) || 0;
+            }
+            if (task.reward) {
+                let parsed = parseFloat(task.reward);
+                if (!isNaN(parsed)) return parsed;
+            }
+
             let customPlatforms = currentConfigData.customPlatforms || [];
             let matchedPlat = customPlatforms.find(p => 
                 (task.title && task.title.toLowerCase().includes(p.key.toLowerCase())) ||
@@ -1152,35 +1161,65 @@
 
             db.ref('config').on('value', (snapshot) => {
                 const newConfig = snapshot.val() || {};
-                let newConfigString = JSON.stringify(newConfig);
-
-                if (lastConfigString !== "" && lastConfigString !== newConfigString) {
+                
+                // প্রাইস আপডেট নোটিশ ফিক্স: সঠিকভাবে পুরানো ও নতুন রেটের তুলনা করা
+                if (lastConfigString !== "") {
                     let oldConfig = JSON.parse(lastConfigString);
                     let changesList = [];
-
-                    const checkKeys = ['gmail', 'facebook', 'instagram'];
                     let priceChanged = false;
 
+                    const checkKeys = ['gmail', 'facebook', 'instagram'];
                     checkKeys.forEach(pk => {
                         let oldPlat = oldConfig[pk] || {};
                         let newPlat = newConfig[pk] || {};
                         let platName = newPlat.name || pk.toUpperCase();
 
-                        let oldP = oldPlat.newPrice ?? oldPlat.price;
-                        let newP = newPlat.newPrice ?? newPlat.price;
-                        if (oldP !== undefined && newP !== undefined && oldP !== newP) {
-                            changesList.push(`• ${platName}: ${oldP} ৳ ➔ ${newP} ৳`);
+                        let oldAuto = oldPlat.autoPrice ?? oldPlat.newPrice ?? oldPlat.price;
+                        let newAuto = newPlat.autoPrice ?? newPlat.newPrice ?? newPlat.price;
+                        if (oldAuto !== undefined && newAuto !== undefined && oldAuto !== newAuto) {
+                            changesList.push(`• ${platName} (অটো): ${oldAuto} ৳ ➔ ${newAuto} ৳`);
+                            priceChanged = true;
+                        }
+
+                        let oldOld = oldPlat.oldPrice;
+                        let newOld = newPlat.oldPrice;
+                        if (oldOld !== undefined && newOld !== undefined && oldOld !== newOld) {
+                            changesList.push(`• ${platName} (পুরাতন): ${oldOld} ৳ ➔ ${newOld} ৳`);
+                            priceChanged = true;
+                        }
+
+                        let oldUsed = oldPlat.usedPrice;
+                        let newUsed = newPlat.usedPrice;
+                        if (oldUsed !== undefined && newUsed !== undefined && oldUsed !== newUsed) {
+                            changesList.push(`• ${platName} (ব্যবহৃত): ${oldUsed} ৳ ➔ ${newUsed} ৳`);
                             priceChanged = true;
                         }
                     });
 
-                    if (priceChanged) {
+                    // কাস্টম প্ল্যাটফর্মগুলোর রেট পরিবর্তন চেক
+                    let oldCustom = oldConfig.customPlatforms || [];
+                    let newCustom = newConfig.customPlatforms || [];
+                    newCustom.forEach(nPlat => {
+                        let oPlat = oldCustom.find(cp => cp.key === nPlat.key);
+                        if (oPlat) {
+                            if (oPlat.autoPrice !== nPlat.autoPrice || oPlat.newPrice !== nPlat.newPrice) {
+                                let oldP = oPlat.autoPrice ?? oPlat.newPrice ?? 10;
+                                let newP = nPlat.autoPrice ?? nPlat.newPrice ?? 10;
+                                if (oldP !== newP) {
+                                    changesList.push(`• ${nPlat.name}: ${oldP} ৳ ➔ ${newP} ৳`);
+                                    priceChanged = true;
+                                }
+                            }
+                        }
+                    });
+
+                    if (priceChanged && changesList.length > 0) {
                         let alertMessage = "⚠️ এডমিন প্যানেল থেকে কাজের রেট পরিবর্তন করা হয়েছে:\n\n" + changesList.join("\n");
                         showCustomAlert(alertMessage, "price_update");
                     }
                 }
 
-                lastConfigString = newConfigString;
+                lastConfigString = JSON.stringify(newConfig);
                 currentConfigData = newConfig;
                 
                 updateTotalBalanceDisplay();
@@ -1632,7 +1671,7 @@
                 accountType: accType,
                 status: 'pending', 
                 reward: rewardAmt + ' TK',
-                rewardAmount: rewardAmt,
+                rewardAmount: rewardAmt, // টাস্ক জমা দেওয়ার সময় রেট স্থায়ীভাবে লক করে রাখা হলো
                 timestamp: Date.now()
             };
 
