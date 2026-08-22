@@ -795,49 +795,19 @@
         let tempTaskInputData = {};
         let hasShownFaWarningThisSession = false;
         let lastConfigString = "";
+        let isFirstConfigLoad = true;
 
-        // ফিক্সড রেট লজিক: টাস্কে অলরেডি সেভ করা rewardAmount থাকলে সেটাই নেবে, না থাকলে বর্তমান কনফিগারেশন থেকে নির্ধারণ করবে
+        // লকড রেট লজিক: টাস্কে সেভ করা rewardAmount বা reward থেকে ফিক্সড রেট রিটার্ন করবে (ডাইনামিকালি আর বদলাবে না)
         function getTaskRate(task) {
             if (task.rewardAmount !== undefined && task.rewardAmount !== null) {
-                return parseFloat(task.rewardAmount) || 0;
+                let parsedAmt = parseFloat(task.rewardAmount);
+                if (!isNaN(parsedAmt)) return parsedAmt;
             }
             if (task.reward) {
                 let parsed = parseFloat(task.reward);
                 if (!isNaN(parsed)) return parsed;
             }
-
-            let customPlatforms = currentConfigData.customPlatforms || [];
-            let matchedPlat = customPlatforms.find(p => 
-                (task.title && task.title.toLowerCase().includes(p.key.toLowerCase())) ||
-                (task.title && p.name && task.title.toLowerCase().includes(p.name.toLowerCase()))
-            );
-
-            let rRate = 10;
-            if (matchedPlat) {
-                let accType = task.accountType || '';
-                if (accType.includes('পুরাতন')) {
-                    rRate = parseFloat(matchedPlat.oldPrice) || 25;
-                } else if (accType.includes('ব্যবহৃত')) {
-                    rRate = parseFloat(matchedPlat.usedPrice) || 15;
-                } else if (accType.includes('অটো')) {
-                    rRate = parseFloat(matchedPlat.autoPrice) || parseFloat(matchedPlat.newPrice) || 10;
-                }
-            } else {
-                let pKey = 'gmail';
-                if (task.title && task.title.toLowerCase().includes('facebook')) pKey = 'facebook';
-                else if (task.title && task.title.toLowerCase().includes('instagram')) pKey = 'instagram';
-
-                let pConfig = currentConfigData[pKey] || {};
-                let accType = task.accountType || '';
-                if (accType.includes('পুরাতন')) {
-                    rRate = pConfig.oldPrice ?? 25;
-                } else if (accType.includes('ব্যবহৃত')) {
-                    rRate = pConfig.usedPrice ?? 15;
-                } else if (accType.includes('অটো')) {
-                    rRate = pConfig.autoPrice ?? pConfig.newPrice ?? 10;
-                }
-            }
-            return parseFloat(rRate) || 0;
+            return 10;
         }
 
         function checkAndTriggerFaWarning() {
@@ -1161,9 +1131,12 @@
 
             db.ref('config').on('value', (snapshot) => {
                 const newConfig = snapshot.val() || {};
-                
-                // প্রাইস আপডেট নোটিশ ফিক্স: সঠিকভাবে পুরানো ও নতুন রেটের তুলনা করা
-                if (lastConfigString !== "") {
+                let newConfigString = JSON.stringify(newConfig);
+
+                if (isFirstConfigLoad) {
+                    lastConfigString = newConfigString;
+                    isFirstConfigLoad = false;
+                } else if (lastConfigString !== "" && lastConfigString !== newConfigString) {
                     let oldConfig = JSON.parse(lastConfigString);
                     let changesList = [];
                     let priceChanged = false;
@@ -1196,19 +1169,16 @@
                         }
                     });
 
-                    // কাস্টম প্ল্যাটফর্মগুলোর রেট পরিবর্তন চেক
                     let oldCustom = oldConfig.customPlatforms || [];
                     let newCustom = newConfig.customPlatforms || [];
                     newCustom.forEach(nPlat => {
                         let oPlat = oldCustom.find(cp => cp.key === nPlat.key);
                         if (oPlat) {
-                            if (oPlat.autoPrice !== nPlat.autoPrice || oPlat.newPrice !== nPlat.newPrice) {
-                                let oldP = oPlat.autoPrice ?? oPlat.newPrice ?? 10;
-                                let newP = nPlat.autoPrice ?? nPlat.newPrice ?? 10;
-                                if (oldP !== newP) {
-                                    changesList.push(`• ${nPlat.name}: ${oldP} ৳ ➔ ${newP} ৳`);
-                                    priceChanged = true;
-                                }
+                            let oldP = oPlat.autoPrice ?? oPlat.newPrice ?? 10;
+                            let newP = nPlat.autoPrice ?? nPlat.newPrice ?? 10;
+                            if (oldP !== newP) {
+                                changesList.push(`• ${nPlat.name}: ${oldP} ৳ ➔ ${newP} ৳`);
+                                priceChanged = true;
                             }
                         }
                     });
@@ -1217,9 +1187,9 @@
                         let alertMessage = "⚠️ এডমিন প্যানেল থেকে কাজের রেট পরিবর্তন করা হয়েছে:\n\n" + changesList.join("\n");
                         showCustomAlert(alertMessage, "price_update");
                     }
+                    lastConfigString = newConfigString;
                 }
 
-                lastConfigString = JSON.stringify(newConfig);
                 currentConfigData = newConfig;
                 
                 updateTotalBalanceDisplay();
@@ -1671,7 +1641,7 @@
                 accountType: accType,
                 status: 'pending', 
                 reward: rewardAmt + ' TK',
-                rewardAmount: rewardAmt, // টাস্ক জমা দেওয়ার সময় রেট স্থায়ীভাবে লক করে রাখা হলো
+                rewardAmount: rewardAmt, // কাজের রেট ফিক্সড বা লক করে রাখা হলো
                 timestamp: Date.now()
             };
 
