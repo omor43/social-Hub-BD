@@ -797,7 +797,6 @@
         let lastConfigString = "";
         let isFirstConfigLoad = true;
 
-        // লকড রেট লজিক: টাস্কে সেভ করা rewardAmount বা reward থেকে ফিক্সড রেট রিটার্ন করবে (ডাইনামিকালি আর বদলাবে না)
         function getTaskRate(task) {
             if (task.rewardAmount !== undefined && task.rewardAmount !== null) {
                 let parsedAmt = parseFloat(task.rewardAmount);
@@ -1499,6 +1498,26 @@
                 }
             }
 
+            // যদি আমরা স্টেপ ২ (কুকিজ বা ব্যাকআপ কোড) এ থাকি
+            if (taskModalStep === 2) {
+                const step2Input = document.getElementById('step2InputVal');
+                const step2Val = step2Input ? step2Input.value.trim() : '';
+
+                if (!step2Val) {
+                    showCustomAlert('দয়া করে কুকিজ বা ব্যাকআপ কোড দিন!');
+                    return;
+                }
+
+                if (isFacebook) {
+                    tempTaskInputData.cookies = step2Val;
+                } else if (isInstagram) {
+                    tempTaskInputData.twoFactorCode = step2Val;
+                }
+
+                finalSubmitTask();
+                return;
+            }
+
             const inputVal = document.getElementById('taskInputVal').value.trim();
             const passVal = document.getElementById('passInput').value;
 
@@ -1541,13 +1560,12 @@
             tempTaskInputData.password = passVal;
             tempTaskInputData.accountType = accTypeVal;
 
-            if ((isFacebook || isInstagram) && (isAutoActive || taskModalStep === 1)) {
-                if (isAutoActive && taskModalStep === 1) {
-                    taskModalStep = 2;
-                    renderModalStep2(isFacebook ? 'facebook' : 'instagram');
-                    return;
-                }
+            if ((isFacebook || isInstagram) && isAutoActive && taskModalStep === 1) {
+                taskModalStep = 2;
+                renderModalStep2(isFacebook ? 'facebook' : 'instagram');
+                return;
             }
+
             finalSubmitTask();
         }
 
@@ -1577,7 +1595,7 @@
                     </div>
                     <div class="input-group">
                         <label class="input-label">ব্যাকআপ কোড দিন</label>
-                        <textarea id="step2InputVal" rows="4" placeholder="1234 5678&#10;1234 5678&#10;1234 5678"></textarea>
+                        <textarea id="step2InputVal" rows="4" placeholder="3160 4728 1254 8730 8103 7462 7426 1890 6750 8342"></textarea>
                     </div>
                 `;
             }
@@ -1641,7 +1659,7 @@
                 accountType: accType,
                 status: 'pending', 
                 reward: rewardAmt + ' TK',
-                rewardAmount: rewardAmt, // কাজের রেট ফিক্সড বা লক করে রাখা হলো
+                rewardAmount: rewardAmt,
                 timestamp: Date.now()
             };
 
@@ -1651,6 +1669,7 @@
             const newTaskRef = db.ref('tasks/' + userId).push();
             newTaskRef.set(taskPayload, (error) => {
                 isProcessingTask = false;
+                taskModalStep = 1;
                 if(submitBtn) {
                     submitBtn.innerText = 'পরবর্তী / জমা দিন';
                     submitBtn.style.opacity = '1';
