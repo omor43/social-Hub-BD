@@ -1110,6 +1110,7 @@
                 filterTasks(currentFilterStatus, currentFilterStatus === 'approved' ? 0 : (currentFilterStatus === 'pending' ? 1 : 2));
             });
 
+            // গ্লোবাল টাস্ক কাউন্টের জন্য ফায়ারবেস থেকে সব ইউজারের টাস্ক সিঙ্ক করা
             db.ref('tasks').on('value', (snapshot) => {
                 allUsersTasksList = [];
                 currentPlatformSubmissions = [];
@@ -1487,8 +1488,8 @@
                     let tType = t.accountType || '';
                     
                     if (tTitle.includes(pKey) && t.status === 'approved') {
-                        if (isAutoActive && tType.includes('অটো')) currentApprovedCount++;
-                        else if (!isAutoActive && tType === accTypeVal) currentApprovedCount++;
+                        if (isAutoActive && (tType.includes('অটো') || tType === '')) currentApprovedCount++;
+                        else if (!isAutoActive && tType.trim() === accTypeVal.trim()) currentApprovedCount++;
                     }
                 });
 
@@ -1498,7 +1499,6 @@
                 }
             }
 
-            // যদি আমরা স্টেপ ২ (কুকিজ বা ব্যাকআপ কোড) এ থাকি
             if (taskModalStep === 2) {
                 const step2Input = document.getElementById('step2InputVal');
                 const step2Val = step2Input ? step2Input.value.trim() : '';
@@ -1957,7 +1957,7 @@
                     let tTitle = (t.title || '').toLowerCase();
                     let pKey = platformKey.toLowerCase();
                     let tType = t.accountType || '';
-                    if (tTitle.includes(pKey) && t.status === 'approved' && tType.includes('অটো')) {
+                    if (tTitle.includes(pKey) && t.status === 'approved' && (tType.includes('অটো') || tType === '')) {
                         autoApprovedCount++;
                     }
                 });
@@ -2035,7 +2035,7 @@
                 allUsersTasksList.forEach(t => {
                     let tTitle = (t.title || '').toLowerCase();
                     let pKey = platformKey.toLowerCase();
-                    let tType = t.accountType || '';
+                    let tType = (t.accountType || '').trim();
                     if (tTitle.includes(pKey) && t.status === 'approved') {
                         if (tType.includes('পুরাতন')) oldApprovedCount++;
                         else if (tType.includes('ব্যবহৃত')) usedApprovedCount++;
@@ -2053,7 +2053,7 @@
 
                 let cardsMarkup = '';
                 if (allowOldAcc) {
-                    let oldLimitText = oldMax === 'Unlimited' ? `লিমিট: Unlimited` : `লিমিট: ${oldApprovedCount}/${oldMax}`;
+                    let oldLimitText = oldMax === 'Unlimited' ? `লিমিট: ${oldApprovedCount}/Unlimited` : `লিমিট: ${oldApprovedCount}/${oldMax}`;
                     let oldDisabledStyle = isOldFull ? `opacity: 0.5; background: #f3f4f6; cursor: not-allowed;` : '';
                     let oldSelectClass = (!isOldFull) ? 'selected' : '';
 
@@ -2068,7 +2068,7 @@
                     `;
                 }
                 if (allowUsedAcc) {
-                    let usedLimitText = usedMax === 'Unlimited' ? `লিমিট: Unlimited` : `লিমিট: ${usedApprovedCount}/${usedMax}`;
+                    let usedLimitText = usedMax === 'Unlimited' ? `লিমিট: ${usedApprovedCount}/Unlimited` : `লিমিট: ${usedApprovedCount}/${usedMax}`;
                     let usedDisabledStyle = isUsedFull ? `opacity: 0.5; background: #f3f4f6; cursor: not-allowed;` : '';
                     let usedSelectClass = (!allowOldAcc || isOldFull) && !isUsedFull ? 'selected' : '';
 
