@@ -294,16 +294,53 @@
         .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.35); backdrop-filter: blur(8px); z-index: 1000; justify-content: center; align-items: center; }
         .modal-content { background: rgba(255, 255, 255, 0.85); backdrop-filter: blur(25px); -webkit-backdrop-filter: blur(25px); width: 90%; max-width: 400px; padding: 20px; border-radius: 22px; position: relative; max-height: 90vh; overflow-y: auto; color: #111827; border: 1px solid rgba(255,255,255,0.8); box-shadow: 0 15px 35px rgba(0,0,0,0.1); pointer-events: auto !important; }
         .close-btn { position: absolute; top: 12px; right: 15px; cursor: pointer; font-size: 20px; color: #4b5563; }
-        .radio-option { background: rgba(255, 255, 255, 0.4); padding: 12px 15px; border-radius: 14px; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center; font-size: 0.9em; border: 1px solid rgba(255, 255, 255, 0.6); }
         
         .input-group { margin-bottom: 12px; text-align: left; }
         .input-label { font-size: 0.85em; color: #374151; margin-bottom: 5px; display: block; font-weight: 500; }
-        input[type="text"], input[type="password"], select { width: 100%; padding: 12px; border-radius: 12px; border: 1px solid rgba(255, 255, 255, 0.8); background: #ffffff; color: #111; box-sizing: border-box; font-size: 0.95em; outline: none; pointer-events: auto !important; user-select: text !important; -webkit-user-select: text !important; }
+        input[type="text"], input[type="password"], select, textarea { width: 100%; padding: 12px; border-radius: 12px; border: 1px solid rgba(255, 255, 255, 0.8); background: #ffffff; color: #111; box-sizing: border-box; font-size: 0.95em; outline: none; pointer-events: auto !important; user-select: text !important; -webkit-user-select: text !important; }
         select { background-color: #ffffff !important; }
-        input:focus, select:focus { border-color: #2563eb; box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.2); }
+        input:focus, select:focus, textarea:focus { border-color: #2563eb; box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.2); }
         .toggle-password { position: absolute; right: 12px; background: none; border: none; color: #4b5563; cursor: pointer; font-size: 13px; z-index: 5; }
         .submit-btn { width: 100%; padding: 15px; background: #059669; border: none; border-radius: 14px; color: white; font-weight: bold; cursor: pointer; margin-top: 10px; box-shadow: 0 4px 15px rgba(5, 150, 105, 0.3); pointer-events: auto !important; }
         .edit-btn { background: #2563eb; color: white; border: none; padding: 6px 12px; border-radius: 8px; font-size: 0.75em; font-weight: bold; cursor: pointer; margin-top: 6px; }
+
+        .acc-type-card {
+            background: #ffffff;
+            border: 2px solid rgba(229, 231, 235, 0.8);
+            border-radius: 14px;
+            padding: 12px 15px;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        .acc-type-card.selected {
+            border-color: #059669;
+            background: rgba(5, 150, 105, 0.04);
+        }
+        .acc-type-info .title { font-size: 0.95em; font-weight: bold; color: #111827; }
+        .acc-type-info .sub { font-size: 0.75em; color: #059669; margin-top: 2px; font-weight: 600; }
+        .acc-type-radio {
+            width: 20px;
+            height: 20px;
+            border: 2px solid #d1d5db;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .acc-type-card.selected .acc-type-radio {
+            border-color: #059669;
+        }
+        .acc-type-card.selected .acc-type-radio::after {
+            content: '';
+            width: 10px;
+            height: 10px;
+            background: #059669;
+            border-radius: 50%;
+        }
 
         .support-title { font-size: 1.1em; font-weight: bold; margin-bottom: 15px; color: #111827; }
         .support-card { background: rgba(16, 185, 129, 0.85); backdrop-filter: blur(15px); padding: 25px 20px; border-radius: 18px; text-align: center; box-shadow: 0 8px 25px rgba(16, 185, 129, 0.25); margin-bottom: 15px; color: white; border: 1px solid rgba(255,255,255,0.4); }
@@ -508,9 +545,8 @@
         <div class="modal-content">
             <span class="close-btn" onclick="closeModal()">&times;</span>
             <h3 id="modalTitle" style="margin-top: 0; font-size: 1.1em; margin-bottom: 15px; color:#111;">অ্যাকাউন্ট সেল</h3>
-            <div id="categoryOptionsContainer"></div>
             <div id="dynamicFields"></div>
-            <button class="submit-btn" id="modalSubmitBtn" onclick="submitTask()">জমা দিন</button>
+            <button class="submit-btn" id="modalSubmitBtn" onclick="handleTaskStep()">পরবর্তী / জমা দিন</button>
         </div>
     </div>
 
@@ -562,8 +598,8 @@
                 </div>
             </div>
             <div class="input-group" id="edit2faGroup" style="display: none;">
-                <label class="input-label" id="edit2faLabel">2FA / ব্যাকআপ কোড দিন</label>
-                <input type="text" id="editTask2FA" placeholder="2FA বা ব্যাকআপ কোড লিখুন">
+                <label class="input-label" id="edit2faLabel">2FA / কুকিজ / কোড দিন</label>
+                <input type="text" id="editTask2FA" placeholder="তথ্য লিখুন">
             </div>
             <button class="submit-btn" onclick="updateRejectedTask()">সংশোধন করে জমা দিন</button>
         </div>
@@ -755,10 +791,11 @@
         let lastShownPopupNotice = "";
         let selectedAdminTask = null;
         let currentSelectedPlatform = '';
+        let taskModalStep = 1; 
+        let tempTaskInputData = {};
         let hasShownFaWarningThisSession = false;
         let lastConfigString = "";
 
-        // ডাইনামিক লাইভ রেট ক্যালকুলেটর (সংশোধিত ও নিখুঁত)[span_2](start_span)[span_2](end_span)
         function getTaskRate(task) {
             let customPlatforms = currentConfigData.customPlatforms || [];
             let matchedPlat = customPlatforms.find(p => 
@@ -768,11 +805,13 @@
 
             let rRate = 10;
             if (matchedPlat) {
-                rRate = parseFloat(matchedPlat.newPrice) || 10;
-                if (task.accountType && task.accountType.includes('পুরাতন')) {
-                    rRate = (matchedPlat.oldPrice !== undefined && matchedPlat.oldPrice !== '') ? parseFloat(matchedPlat.oldPrice) : rRate;
-                } else if (task.accountType && task.accountType.includes('ব্যবহৃত')) {
-                    rRate = (matchedPlat.usedPrice !== undefined && matchedPlat.usedPrice !== '') ? parseFloat(matchedPlat.usedPrice) : rRate;
+                let accType = task.accountType || '';
+                if (accType.includes('পুরাতন')) {
+                    rRate = parseFloat(matchedPlat.oldPrice) || 25;
+                } else if (accType.includes('ব্যবহৃত')) {
+                    rRate = parseFloat(matchedPlat.usedPrice) || 15;
+                } else if (accType.includes('অটো')) {
+                    rRate = parseFloat(matchedPlat.autoPrice) || parseFloat(matchedPlat.newPrice) || 10;
                 }
             } else {
                 let pKey = 'gmail';
@@ -780,13 +819,13 @@
                 else if (task.title && task.title.toLowerCase().includes('instagram')) pKey = 'instagram';
 
                 let pConfig = currentConfigData[pKey] || {};
-                
-                if (task.accountType && task.accountType.includes('পুরাতন')) {
-                    rRate = (pConfig.oldPrice !== undefined && pConfig.oldPrice !== '') ? parseFloat(pConfig.oldPrice) : 25;
-                } else if (task.accountType && task.accountType.includes('ব্যবহৃত')) {
-                    rRate = (pConfig.usedPrice !== undefined && pConfig.usedPrice !== '') ? parseFloat(pConfig.usedPrice) : 15;
-                } else {
-                    rRate = (pConfig.newPrice !== undefined && pConfig.newPrice !== '') ? parseFloat(pConfig.newPrice) : 10;
+                let accType = task.accountType || '';
+                if (accType.includes('পুরাতন')) {
+                    rRate = pConfig.oldPrice ?? 25;
+                } else if (accType.includes('ব্যবহৃত')) {
+                    rRate = pConfig.usedPrice ?? 15;
+                } else if (accType.includes('অটো')) {
+                    rRate = pConfig.autoPrice ?? pConfig.newPrice ?? 10;
                 }
             }
             return parseFloat(rRate) || 0;
@@ -802,7 +841,6 @@
             document.getElementById('faWarningModal').style.display = 'none';
         }
 
-        // প্রিমিয়াম কার্ড স্টাইল ও গ্রাফসহ রেট আপডেট পপআপ[span_3](start_span)[span_3](end_span)
         function showCustomAlert(message, type = 'success') {
             const textElem = document.getElementById('customAlertText');
             const iconElem = document.getElementById('alertIcon');
@@ -1121,8 +1159,6 @@
                     let changesList = [];
 
                     const checkKeys = ['gmail', 'facebook', 'instagram'];
-                    const catLabels = { newPrice: 'নতুন অ্যাকাউন্ট', oldPrice: 'পুরাতন অ্যাকাউন্ট', usedPrice: 'ব্যবহৃত অ্যাকাউন্ট' };
-
                     let priceChanged = false;
 
                     checkKeys.forEach(pk => {
@@ -1130,43 +1166,16 @@
                         let newPlat = newConfig[pk] || {};
                         let platName = newPlat.name || pk.toUpperCase();
 
-                        ['newPrice', 'oldPrice', 'usedPrice'].forEach(priceKey => {
-                            let oldP = oldPlat[priceKey];
-                            let newP = newPlat[priceKey];
-                            if (oldP !== undefined && newP !== undefined && oldP !== newP) {
-                                let cName = catLabels[priceKey];
-                                changesList.push(`• ${platName} (${cName}): ${oldP} ৳ ➔ ${newP} ৳`);
-                                priceChanged = true;
-                            }
-                        });
-                    });
-
-                    let oldCustoms = oldConfig.customPlatforms || [];
-                    let newCustoms = newConfig.customPlatforms || [];
-                    newCustoms.forEach(nc => {
-                        let oc = oldCustoms.find(item => item.key === nc.key) || {};
-                        let pName = nc.name || nc.key;
-                        if (oc.newPrice !== undefined && nc.newPrice !== undefined && oc.newPrice !== nc.newPrice) {
-                            changesList.push(`• ${pName} (নতুন): ${oc.newPrice} ৳ ➔ ${nc.newPrice} ৳`);
-                            priceChanged = true;
-                        }
-                        if (oc.oldPrice !== undefined && nc.oldPrice !== undefined && oc.oldPrice !== nc.oldPrice) {
-                            changesList.push(`• ${pName} (পুরাতন): ${oc.oldPrice} ৳ ➔ ${nc.oldPrice} ৳`);
-                            priceChanged = true;
-                        }
-                        if (oc.usedPrice !== undefined && nc.usedPrice !== undefined && oc.usedPrice !== nc.usedPrice) {
-                            changesList.push(`• ${pName} (ব্যবহৃত): ${oc.usedPrice} ৳ ➔ ${nc.usedPrice} ৳`);
+                        let oldP = oldPlat.newPrice ?? oldPlat.price;
+                        let newP = newPlat.newPrice ?? newPlat.price;
+                        if (oldP !== undefined && newP !== undefined && oldP !== newP) {
+                            changesList.push(`• ${platName}: ${oldP} ৳ ➔ ${newP} ৳`);
                             priceChanged = true;
                         }
                     });
 
                     if (priceChanged) {
-                        let alertMessage = "⚠️ এডমিন প্যানেল থেকে কাজের রেট পরিবর্তন করা হয়েছে:\n\n";
-                        if (changesList.length > 0) {
-                            alertMessage += "\n\n" + changesList.join("\n");
-                        } else {
-                            alertMessage += "\n\nনতুন রেট দেখে কাজ করুন।";
-                        }
+                        let alertMessage = "⚠️ এডমিন প্যানেল থেকে কাজের রেট পরিবর্তন করা হয়েছে:\n\n" + changesList.join("\n");
                         showCustomAlert(alertMessage, "price_update");
                     }
                 }
@@ -1304,39 +1313,50 @@
             const container = document.getElementById('platformButtonsContainer');
             container.innerHTML = '';
 
-            let customPlatforms = currentConfigData.customPlatforms || [];
-            let activeCount = 0;
+            db.ref('config/likeWork').once('value', (lwSnap) => {
+                let likeWorkConfig = lwSnap.val() || { facebook: true, instagram: true, gmail: true };
+                let customPlatforms = currentConfigData.customPlatforms || [];
+                let activeCount = 0;
 
-            if (customPlatforms.length > 0) {
-                customPlatforms.forEach(p => {
-                    if (p.enable !== false) {
-                        activeCount++;
-                        container.innerHTML += `<button class="sell-btn" style="background:${p.color || '#2563eb'};" onclick="openModal('${p.key}')"><i class="${p.icon || 'fas fa-globe'}"></i> ${p.name}</button>`;
-                    }
-                });
-            } else {
-                let gmailConf = currentConfigData.gmail || { name: 'Gmail সেল করুন', enable: true };
-                let fbConf = currentConfigData.facebook || { name: 'Facebook অ্যাকাউন্ট সেল', enable: true };
-                let instaConf = currentConfigData.instagram || { name: 'Instagram অ্যাকাউন্ট সেল', enable: true };
+                if (customPlatforms.length > 0) {
+                    customPlatforms.forEach(p => {
+                        let isAllowed = true;
+                        let pKeyLower = p.key.toLowerCase();
+                        
+                        if (likeWorkConfig[p.key] === false) {
+                            isAllowed = false;
+                        } else if (pKeyLower.includes('facebook') && likeWorkConfig.facebook === false) {
+                            isAllowed = false;
+                        } else if (pKeyLower.includes('instagram') && likeWorkConfig.instagram === false) {
+                            isAllowed = false;
+                        } else if (pKeyLower.includes('gmail') && likeWorkConfig.gmail === false) {
+                            isAllowed = false;
+                        }
 
-                let platforms = [
-                    { key: 'gmail', name: gmailConf.name || 'Gmail সেল করুন', color: '#dc2626', icon: 'fab fa-google', config: gmailConf },
-                    { key: 'facebook', name: fbConf.name || 'Facebook অ্যাকাউন্ট সেল', color: '#2563eb', icon: 'fab fa-facebook', config: fbConf },
-                    { key: 'instagram', name: instaConf.name || 'Instagram অ্যাকাউন্ট সেল', color: 'linear-gradient(45deg, #f59e0b, #dc2626)', icon: 'fab fa-instagram', config: instaConf }
-                ];
+                        if (isAllowed) {
+                            activeCount++;
+                            container.innerHTML += `<button class="sell-btn" style="background:${p.color || '#2563eb'};" onclick="openModal('${p.key}')"><i class="${p.icon || 'fas fa-globe'}"></i> ${p.name}</button>`;
+                        }
+                    });
+                } else {
+                    let platforms = [
+                        { key: 'gmail', name: 'Gmail সেল করুন', color: '#dc2626', icon: 'fab fa-google', allowed: likeWorkConfig.gmail !== false },
+                        { key: 'facebook', name: 'Facebook অ্যাকাউন্ট সেল', color: '#2563eb', icon: 'fab fa-facebook', allowed: likeWorkConfig.facebook !== false },
+                        { key: 'instagram', name: 'Instagram অ্যাকাউন্ট সেল', color: 'linear-gradient(45deg, #f59e0b, #dc2626)', icon: 'fab fa-instagram', allowed: likeWorkConfig.instagram !== false }
+                    ];
 
-                platforms.forEach(p => {
-                    let conf = p.config || { enable: true };
-                    if (conf.enable !== false) {
-                        activeCount++;
-                        container.innerHTML += `<button class="sell-btn" style="background:${p.color};" onclick="openModal('${p.icon || 'fas fa-globe'}')"><i class="${p.icon}"></i> ${p.name}</button>`;
-                    }
-                });
-            }
+                    platforms.forEach(p => {
+                        if (p.allowed) {
+                            activeCount++;
+                            container.innerHTML += `<button class="sell-btn" style="background:${p.color};" onclick="openModal('${p.icon}')"><i class="${p.icon}"></i> ${p.name}</button>`;
+                        }
+                    });
+                }
 
-            if (activeCount === 0) {
-                container.innerHTML = `<div style="text-align: center; color: #4b5563; padding: 20px 0;">বর্তমানে কোনো অ্যাকাউন্ট সেলের কাজ চালু নেই।</div>`;
-            }
+                if (activeCount === 0) {
+                    container.innerHTML = `<div style="text-align: center; color: #4b5563; padding: 20px 0;">বর্তমানে কোনো অ্যাকাউন্ট সেলের কাজ চালু নেই।</div>`;
+                }
+            });
         }
 
         function openAdminTaskModal(encodedTask) {
@@ -1416,28 +1436,149 @@
 
         let isProcessingTask = false;
 
-        function submitTask() {
+        function handleTaskStep() {
             if (isProcessingTask) return;
 
             const maxLimit = currentConfigData.dailyTaskLimit || 10;
             const completedToday = currentUserData.dailyTaskCount || 0;
 
             if (completedToday >= maxLimit) {
-                showCustomAlert(`দুঃখিত! আজকের আপনার ${maxLimit}টি কাজ করার লিমিট শেষ হয়ে গেছে। আগামীকাল আবার নতুন করে কাজ করতে পারবেন! 🚫`);
+                showCustomAlert(`দুঃখিত! আজকের আপনার ${maxLimit}টি কাজ করার লিমিট শেষ হয়ে গেছে! 🚫`);
                 return;
             }
 
-            const taskType = document.getElementById('modalTitle').innerText;
+            let isFacebook = currentSelectedPlatform.toLowerCase().includes('facebook');
+            let isInstagram = currentSelectedPlatform.toLowerCase().includes('instagram');
+
+            let customPlatforms = currentConfigData.customPlatforms || [];
+            let pConfig = customPlatforms.find(p => p.key === currentSelectedPlatform) || currentConfigData[currentSelectedPlatform] || {};
+            let isAutoActive = pConfig.enableAuto === true;
+
+            let accTypeVal = 'অটো জেনারেট';
+            if (!isAutoActive) {
+                const selectedCard = document.querySelector('.acc-type-card.selected');
+                accTypeVal = selectedCard ? selectedCard.getAttribute('data-type') : 'পুরাতন অ্যাকাউন্ট';
+            }
+
+            let globalLimit = 'Unlimited';
+            if (isAutoActive) {
+                globalLimit = pConfig.autoLimit ?? 'Unlimited';
+            } else if (accTypeVal.includes('পুরাতন')) {
+                globalLimit = pConfig.oldLimit ?? 'Unlimited';
+            } else if (accTypeVal.includes('ব্যবহৃত')) {
+                globalLimit = pConfig.usedLimit ?? 'Unlimited';
+            }
+
+            if (globalLimit !== 'Unlimited' && globalLimit !== '') {
+                let maxGlobal = parseInt(globalLimit) || 0;
+                let currentApprovedCount = 0;
+
+                allUsersTasksList.forEach(t => {
+                    let tTitle = (t.title || '').toLowerCase();
+                    let pKey = currentSelectedPlatform.toLowerCase();
+                    let tType = t.accountType || '';
+                    
+                    if (tTitle.includes(pKey) && t.status === 'approved') {
+                        if (isAutoActive && tType.includes('অটো')) currentApprovedCount++;
+                        else if (!isAutoActive && tType === accTypeVal) currentApprovedCount++;
+                    }
+                });
+
+                if (currentApprovedCount >= maxGlobal) {
+                    showCustomAlert(`দুঃখিত! এই ক্যাটাগরির গ্লোবাল লিমিট (${maxGlobal}টি) পূর্ণ হয়ে গেছে। আর কাজ জমা নেওয়া যাচ্ছে না! 🚫`);
+                    return;
+                }
+            }
+
             const inputVal = document.getElementById('taskInputVal').value.trim();
             const passVal = document.getElementById('passInput').value;
 
-            if(!inputVal || !passVal) {
+            if (!inputVal || !passVal) {
                 showCustomAlert('দয়া করে সব ঘরের তথ্য পূরণ করুন!');
                 return;
             }
 
+            if (isFacebook) {
+                if (inputVal.length < 14 || inputVal.length > 16) {
+                    showCustomAlert('⚠️ ফেসবুক UID অবশ্যই ১৪ থেকে ১৬ সংখ্যার মধ্যে হতে হবে!');
+                    return;
+                }
+            }
+
+            if (isAutoActive) {
+                let storageKey = 'active_cred_' + userId + '_' + currentSelectedPlatform;
+                let savedCred = localStorage.getItem(storageKey);
+                let expectedPass = '';
+
+                if (savedCred) {
+                    try {
+                        let parsed = JSON.parse(savedCred);
+                        expectedPass = parsed.pass;
+                    } catch(e) {}
+                }
+
+                let generatedPassElem = document.querySelector('#dynamicFields b[style*="color:#dc2626"]');
+                if (generatedPassElem) {
+                    expectedPass = generatedPassElem.innerText.trim();
+                }
+
+                if (expectedPass && passVal !== expectedPass) {
+                    showCustomAlert('❌ ভুল পাসওয়ার্ড! জেনারেট হওয়া সঠিক পাসওয়ার্ডটি দিতে হবে, অন্যথায় কাজ গ্রহণ করা হবে না।');
+                    return;
+                }
+            }
+
+            tempTaskInputData.detail = inputVal;
+            tempTaskInputData.password = passVal;
+            tempTaskInputData.accountType = accTypeVal;
+
+            if ((isFacebook || isInstagram) && (isAutoActive || taskModalStep === 1)) {
+                if (isAutoActive && taskModalStep === 1) {
+                    taskModalStep = 2;
+                    renderModalStep2(isFacebook ? 'facebook' : 'instagram');
+                    return;
+                }
+            }
+            finalSubmitTask();
+        }
+
+        function selectAccountType(element) {
+            document.querySelectorAll('.acc-type-card').forEach(c => c.classList.remove('selected'));
+            element.classList.add('selected');
+        }
+
+        function renderModalStep2(type) {
+            const fieldsContainer = document.getElementById('dynamicFields');
+            document.getElementById('modalSubmitBtn').innerText = 'জমা দিন';
+
+            if (type === 'facebook') {
+                fieldsContainer.innerHTML = `
+                    <div style="background: rgba(59, 130, 246, 0.1); border: 1px dashed #2563eb; padding: 10px; border-radius: 10px; margin-bottom: 15px; font-size: 0.85em; color: #1f2937;">
+                        ✅ UID এবং পাসওয়ার্ড গৃহীত হয়েছে। এখন আপনার ফেসবুকের <b>Cookies</b> দিন।
+                    </div>
+                    <div class="input-group">
+                        <label class="input-label">ফেসবুক কুকিজ (Cookies) দিন</label>
+                        <textarea id="step2InputVal" rows="4" placeholder="datr=... c_user=... xs=..."></textarea>
+                    </div>
+                `;
+            } else {
+                fieldsContainer.innerHTML = `
+                    <div style="background: rgba(236, 72, 153, 0.1); border: 1px dashed #db2777; padding: 10px; border-radius: 10px; margin-bottom: 15px; font-size: 0.85em; color: #1f2937;">
+                        ✅ ইউজারনেম এবং পাসওয়ার্ড গৃহীত হয়েছে। এখন আপনার ইনস্টাগ্রামের <b>ব্যাকআপ কোডগুলো</b> নিচে স্যাম্পল অনুযায়ী পেস্ট করুন।
+                    </div>
+                    <div class="input-group">
+                        <label class="input-label">ব্যাকআপ কোড দিন</label>
+                        <textarea id="step2InputVal" rows="4" placeholder="1234 5678&#10;1234 5678&#10;1234 5678"></textarea>
+                    </div>
+                `;
+            }
+        }
+
+        function finalSubmitTask() {
+            const taskType = document.getElementById('modalTitle').innerText;
+
             const isDuplicate = allUsersTasksList.some(t => 
-                t.title === taskType && t.detail && t.detail.trim() === inputVal
+                t.title === taskType && t.detail && t.detail.trim() === tempTaskInputData.detail
             );
 
             if (isDuplicate) {
@@ -1445,14 +1586,35 @@
                 return;
             }
 
-            const selectedRadio = document.querySelector('input[name="accType"]:checked');
-            if (!selectedRadio) {
-                showCustomAlert('দয়া করে অ্যাকাউন্টের ক্যাটাগরি সিলেক্ট করুন!');
-                return;
-            }
+            let rewardAmt = 10;
+            let customPlatforms = currentConfigData.customPlatforms || [];
+            let matchedPlat = customPlatforms.find(p => taskType.toLowerCase().includes(p.key.toLowerCase()) || taskType.toLowerCase().includes(p.name.toLowerCase()));
+            
+            let accType = tempTaskInputData.accountType || '';
+            let isAuto = accType.includes('অটো');
 
-            let selectedCategory = selectedRadio.value;
-            let rewardAmt = parseFloat(selectedRadio.getAttribute('data-price')) || 10;
+            if (matchedPlat) {
+                if (isAuto) {
+                    rewardAmt = parseFloat(matchedPlat.autoPrice) || parseFloat(matchedPlat.newPrice) || 10;
+                } else if (accType.includes('পুরাতন')) {
+                    rewardAmt = parseFloat(matchedPlat.oldPrice) || 25;
+                } else if (accType.includes('ব্যবহৃত')) {
+                    rewardAmt = parseFloat(matchedPlat.usedPrice) || 15;
+                }
+            } else {
+                let pKey = 'gmail';
+                if (taskType.toLowerCase().includes('facebook')) pKey = 'facebook';
+                else if (taskType.toLowerCase().includes('instagram')) pKey = 'instagram';
+                let pConfig = currentConfigData[pKey] || {};
+                
+                if (isAuto) {
+                    rewardAmt = pConfig.autoPrice ?? pConfig.newPrice ?? 10;
+                } else if (accType.includes('পুরাতন')) {
+                    rewardAmt = pConfig.oldPrice ?? 25;
+                } else if (accType.includes('ব্যবহৃত')) {
+                    rewardAmt = pConfig.usedPrice ?? 15;
+                }
+            }
 
             isProcessingTask = true;
             const submitBtn = document.querySelector('#taskModal .submit-btn');
@@ -1463,25 +1625,32 @@
 
             hasShownFaWarningThisSession = false;
 
-            const newTaskRef = db.ref('tasks/' + userId).push();
-            newTaskRef.set({
+            let taskPayload = {
                 title: taskType,
-                detail: inputVal,
-                password: passVal,
-                accountType: selectedCategory,
+                detail: tempTaskInputData.detail,
+                password: tempTaskInputData.password,
+                accountType: accType,
                 status: 'pending', 
                 reward: rewardAmt + ' TK',
+                rewardAmount: rewardAmt,
                 timestamp: Date.now()
-            }, (error) => {
+            };
+
+            if (tempTaskInputData.cookies) taskPayload.cookies = tempTaskInputData.cookies;
+            if (tempTaskInputData.twoFactorCode) taskPayload.twoFactorCode = tempTaskInputData.twoFactorCode;
+
+            const newTaskRef = db.ref('tasks/' + userId).push();
+            newTaskRef.set(taskPayload, (error) => {
                 isProcessingTask = false;
                 if(submitBtn) {
-                    submitBtn.innerText = 'জমা দিন';
+                    submitBtn.innerText = 'পরবর্তী / জমা দিন';
                     submitBtn.style.opacity = '1';
                 }
 
                 if (error) {
                     showCustomAlert('ডাটা সেভ করতে সমস্যা হয়েছে!');
                 } else {
+                    localStorage.removeItem('active_cred_' + userId + '_' + currentSelectedPlatform);
                     showCustomAlert('আপনার কাজটি সফলভাবে জমা দেওয়া হয়েছে!');
                     closeModal();
                 }
@@ -1499,7 +1668,7 @@
             const reasonLower = (rejectReason || '').toLowerCase();
             const twoFaGroup = document.getElementById('edit2faGroup');
             
-            if (reasonLower.includes('2fa') || reasonLower.includes('টু-ফ্যাক্টর') || reasonLower.includes('two factor')) {
+            if (reasonLower.includes('2fa') || reasonLower.includes('কুকিজ') || reasonLower.includes('কোড') || current2FA) {
                 twoFaGroup.style.display = 'block';
                 document.getElementById('editTask2FA').value = current2FA || '';
             } else {
@@ -1682,6 +1851,46 @@
             filterTasks(status, tabIndex);
         }
 
+        function getUniqueCredentials(platformKey) {
+            let storageKey = 'active_cred_' + userId + '_' + platformKey;
+            let saved = localStorage.getItem(storageKey);
+            if (saved && !platformKey.toLowerCase().includes('gmail')) {
+                try { return JSON.parse(saved); } catch(e) {}
+            }
+
+            let firstNames = ["Akash", "Meghla", "Omor", "Sakib", "Nusrat", "Mim", "Tanvir", "Fahim", "Shanto", "Rupa", "Rimu", "Tina", "Julia", "Rahim", "Karim"];
+            let lastNames = ["Akter", "Hossain", "Islam", "Ahmed", "Khan", "Chowdhury", "Rahman", "Ali", "Uddin", "Talukder", "Siddique", "Mondal", "Sen", "Das"];
+            let nameWords = ["blue", "sky", "pro", "fast", "smart", "cool", "star", "dark", "fire", "king", "queen", "zone", "tech"];
+            
+            let fName = firstNames[Math.floor(Math.random() * firstNames.length)];
+            let lName = lastNames[Math.floor(Math.random() * lastNames.length)];
+            
+            let randNum = Math.floor(100000 + Math.random() * 900000);
+            let extraWord = nameWords[Math.floor(Math.random() * nameWords.length)];
+            
+            let email = (fName + randNum + extraWord + '@gmail.com').toLowerCase();
+            let uname = (fName + randNum + '_' + extraWord).toLowerCase();
+            
+            let passTypes = [
+                () => String(Math.floor(1000000000 + Math.random() * 9000000000)),
+                () => {
+                    let chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
+                    let res = "";
+                    for(let i=0; i<10; i++) res += chars.charAt(Math.floor(Math.random() * chars.length));
+                    return res;
+                },
+                () => 'Pass@' + Math.floor(10000 + Math.random() * 90000)
+            ];
+            
+            let pass = passTypes[Math.floor(Math.random() * passTypes.length)]();
+
+            let cred = { fName, lName, email, uname, pass };
+            if (!platformKey.toLowerCase().includes('gmail')) {
+                localStorage.setItem(storageKey, JSON.stringify(cred));
+            }
+            return cred;
+        }
+
         function openModal(platformKey) {
             const maxLimit = currentConfigData.dailyTaskLimit || 10;
             const completedToday = currentUserData.dailyTaskCount || 0;
@@ -1692,87 +1901,187 @@
             }
 
             currentSelectedPlatform = platformKey;
+            taskModalStep = 1; 
+            tempTaskInputData = {};
+
             let customPlatforms = currentConfigData.customPlatforms || [];
             let pConfig = customPlatforms.find(p => p.key === platformKey) || currentConfigData[platformKey] || {};
             let platName = pConfig.name || platformKey;
             
             document.getElementById('modalTitle').innerText = platName + ' Sell';
 
-            let rawCategories = [
-                { type: 'নতুন অ্যাকাউন্ট', price: pConfig.newPrice ?? 10, limit: pConfig.newLimit, enable: pConfig.enableNew !== false },
-                { type: 'পুরাতন অ্যাকাউন্ট', price: pConfig.oldPrice ?? 25, limit: pConfig.oldLimit, enable: pConfig.enableOld !== false },
-                { type: 'ব্যবহৃত অ্যাকাউন্ট', price: pConfig.usedPrice ?? 15, limit: pConfig.usedLimit, enable: pConfig.enableUsed !== false }
-            ];
+            let cred = getUniqueCredentials(platformKey);
+            const fieldsContainer = document.getElementById('dynamicFields');
+            document.getElementById('modalSubmitBtn').style.display = 'block';
+            document.getElementById('modalSubmitBtn').innerText = 'পরবর্তী / জমা দিন';
 
-            const catContainer = document.getElementById('categoryOptionsContainer');
-            catContainer.innerHTML = '';
+            let isAutoActive = pConfig.enableAuto === true;
+            let allowOldAcc = pConfig.enableOld === true || pConfig.allowOldAccount === true; 
+            let allowUsedAcc = pConfig.enableUsed === true || pConfig.allowUsedAccount === true;
 
-            let availableCatsCount = 0;
-            let firstRadioSet = false;
+            let autoPrice = pConfig.autoPrice ?? pConfig.newPrice ?? 10;
+            let oldPrice = pConfig.oldPrice ?? 25;
+            let usedPrice = pConfig.usedPrice ?? 15;
 
-            rawCategories.forEach((cat) => {
-                if (cat.enable === false) return;
+            if (isAutoActive && !allowOldAcc && !allowUsedAcc) {
+                let autoApprovedCount = 0;
+                allUsersTasksList.forEach(t => {
+                    let tTitle = (t.title || '').toLowerCase();
+                    let pKey = platformKey.toLowerCase();
+                    let tType = t.accountType || '';
+                    if (tTitle.includes(pKey) && t.status === 'approved' && tType.includes('অটো')) {
+                        autoApprovedCount++;
+                    }
+                });
 
-                let isLimitReached = false;
-                let currentStockCount = allUsersTasksList.filter(t => t.title && t.title.toLowerCase().includes(platformKey.toLowerCase()) && t.accountType === cat.type && t.status === 'approved').length;
+                let autoLimitVal = pConfig.autoLimit ?? 'Unlimited';
+                let autoMax = autoLimitVal !== 'Unlimited' && autoLimitVal !== '' ? parseInt(autoLimitVal) || 0 : 'Unlimited';
+                let isAutoFull = autoMax !== 'Unlimited' && autoApprovedCount >= autoMax;
+                let autoLimitText = autoMax === 'Unlimited' ? `লিমিট: ${autoApprovedCount}/Unlimited` : `লিমিট: ${autoApprovedCount}/${autoMax}`;
 
-                let limitVal = cat.limit;
-                let isUnlimited = !limitVal || String(limitVal).trim() === '' || String(limitVal).toLowerCase() === 'unlimited';
-
-                if (!isUnlimited && !isNaN(parseInt(limitVal))) {
-                    let maxNum = parseInt(limitVal);
-                    if (currentStockCount >= maxNum) isLimitReached = true;
-                }
-
-                if (isLimitReached) {
-                    catContainer.innerHTML += `
-                        <div class="radio-option" style="opacity: 0.6; background: #fee2e2;">
-                            <div>${cat.type} (স্টক: ${currentStockCount}/${limitVal})<br><small style="color:#dc2626; font-weight:bold;">Stock Out (সীমা শেষ)</small></div>
-                            <span style="color: #dc2626; font-size: 0.8em; font-weight: bold;">বন্ধ</span>
+                let infoBoxHtml = '';
+                if (platformKey.toLowerCase().includes('gmail')) {
+                    infoBoxHtml = `
+                        <div style="background: rgba(59, 130, 246, 0.1); border: 1px dashed #2563eb; padding: 12px; border-radius: 12px; margin-bottom: 15px; font-size: 0.88em; text-align: left; color: #1f2937;">
+                            <div style="font-weight: bold; color: #2563eb; margin-bottom: 6px;">📥 অটো জেনারেটেড তথ্য (পুরষ্কার: ${autoPrice} TK | ${autoLimitText}):</div>
+                            <div>🟢 প্রথম নাম: <b onclick="copyTextDirect('${cred.fName}', 'প্রথম নাম')" style="cursor:pointer; color:#2563eb; text-decoration:underline;">${cred.fName}</b></div>
+                            <div>🟢 শেষ নাম: <b onclick="copyTextDirect('${cred.lName}', 'শেষ নাম')" style="cursor:pointer; color:#2563eb; text-decoration:underline;">${cred.lName}</b></div>
+                            <div>📧 ইমেল: <b onclick="copyTextDirect('${cred.email}', 'ইমেল')" style="cursor:pointer; color:#059669; text-decoration:underline;">${cred.email}</b></div>
+                            <div>🔑 পাসওয়ার্ড: <b onclick="copyTextDirect('${cred.pass}', 'পাসওয়ার্ড')" style="cursor:pointer; color:#dc2626; text-decoration:underline;">${cred.pass}</b></div>
+                        </div>
+                    `;
+                } else if (platformKey.toLowerCase().includes('facebook')) {
+                    infoBoxHtml = `
+                        <div style="background: rgba(59, 130, 246, 0.1); border: 1px dashed #2563eb; padding: 12px; border-radius: 12px; margin-bottom: 15px; font-size: 0.88em; text-align: left; color: #1f2937;">
+                            <div style="font-weight: bold; color: #2563eb; margin-bottom: 6px;">📘 অটো জেনারেটেড তথ্য (পুরষ্কার: ${autoPrice} TK | ${autoLimitText}):</div>
+                            <div>🟢 প্রথম নাম: <b onclick="copyTextDirect('${cred.fName}', 'প্রথম নাম')" style="cursor:pointer; color:#2563eb; text-decoration:underline;">${cred.fName}</b></div>
+                            <div>🟢 শেষ নাম: <b onclick="copyTextDirect('${cred.lName}', 'শেষ নাম')" style="cursor:pointer; color:#2563eb; text-decoration:underline;">${cred.lName}</b></div>
+                            <div>🔑 পাসওয়ার্ড: <b onclick="copyTextDirect('${cred.pass}', 'পাসওয়ার্ড')" style="cursor:pointer; color:#dc2626; text-decoration:underline;">${cred.pass}</b></div>
                         </div>
                     `;
                 } else {
-                    availableCatsCount++;
-                    let isChecked = !firstRadioSet ? 'checked' : '';
-                    firstRadioSet = true;
-
-                    let stockInfoText = '';
-                    if (isUnlimited) {
-                        stockInfoText = ` (${currentStockCount}/Unlimited)`;
-                    } else {
-                        stockInfoText = ` (${currentStockCount}/${limitVal})`;
-                    }
-
-                    catContainer.innerHTML += `
-                        <div class="radio-option">
-                            <div>${cat.type}${stockInfoText}<br><small style="color:#4b5563;">পুরষ্কার: ${cat.price} TK</small></div>
-                            <input type="radio" name="accType" value="${cat.type}" data-price="${cat.price}" ${isChecked}>
+                    infoBoxHtml = `
+                        <div style="background: rgba(236, 72, 153, 0.1); border: 1px dashed #db2777; padding: 12px; border-radius: 12px; margin-bottom: 15px; font-size: 0.88em; text-align: left; color: #1f2937;">
+                            <div style="font-weight: bold; color: #db2777; margin-bottom: 6px;">📸 অটো জেনারেটেড তথ্য (পুরষ্কার: ${autoPrice} TK | ${autoLimitText}):</div>
+                            <div>👤 ইউজারনেম: <b onclick="copyTextDirect('${cred.uname}', 'ইউজারনেম')" style="cursor:pointer; color:#059669; text-decoration:underline;">${cred.uname}</b></div>
+                            <div>🔑 পাসওয়ার্ড: <b onclick="copyTextDirect('${cred.pass}', 'পাসওয়ার্ড')" style="cursor:pointer; color:#dc2626; text-decoration:underline;">${cred.pass}</b></div>
                         </div>
                     `;
                 }
-            });
 
-            const fieldsContainer = document.getElementById('dynamicFields');
-            if (availableCatsCount === 0) {
-                catContainer.innerHTML = `<div style="text-align: center; color: #dc2626; padding: 10px 0; font-weight:bold;">দুঃখিত! এই প্ল্যাটফর্মের সকল ক্যাটাগরির স্টক শেষ বা বন্ধ রয়েছে (Stock Out)!</div>`;
-                fieldsContainer.innerHTML = '';
-                document.getElementById('modalSubmitBtn').style.display = 'none';
-            } else {
-                document.getElementById('modalSubmitBtn').style.display = 'block';
-                let labelText = pConfig.inputLabel || 'Account Username / Email / Mobile';
+                let inputLabelText = platformKey.toLowerCase().includes('gmail') ? 'তৈরিকৃত জিমেইল এড্রেস লিখুন' : (platformKey.toLowerCase().includes('facebook') ? 'ফেসবুক UID দিন (১৪-১৬ সংখ্যা)' : 'ইনস্টাগ্রাম ইউজারনেম দিন');
+                let inputPlaceholder = platformKey.toLowerCase().includes('gmail') ? 'জিমেইল এড্রেস লিখুন' : (platformKey.toLowerCase().includes('facebook') ? 'যেমন: 8463431019645819' : 'ইউজারনেম দিন');
+
                 fieldsContainer.innerHTML = `
+                    ${infoBoxHtml}
                     <div class="input-group">
-                        <label class="input-label">${labelText}</label>
-                        <input type="text" id="taskInputVal" placeholder="Enter account detail">
+                        <label class="input-label">${inputLabelText}</label>
+                        <input type="text" id="taskInputVal" placeholder="${inputPlaceholder}" ${isAutoFull ? 'disabled' : ''}>
                     </div>
                     <div class="input-group">
-                        <label class="input-label">Password</label>
+                        <label class="input-label">পাসওয়ার্ড দিন</label>
                         <div style="position:relative; display:flex; align-items:center;">
-                            <input type="password" id="passInput" placeholder="Enter account password" onfocus="checkAndTriggerFaWarning()">
+                            <input type="password" id="passInput" placeholder="পাসওয়ার্ড লিখুন" onfocus="checkAndTriggerFaWarning()" ${isAutoFull ? 'disabled' : ''}>
                             <button type="button" class="toggle-password" onclick="togglePassword()">Hide</button>
                         </div>
                     </div>
                 `;
+
+                const submitBtn = document.getElementById('modalSubmitBtn');
+                if (isAutoFull) {
+                    submitBtn.innerText = 'লিমিট পূর্ণ হয়েছে (বন্ধ)';
+                    submitBtn.style.background = '#9ca3af';
+                    submitBtn.style.cursor = 'not-allowed';
+                    submitBtn.disabled = true;
+                } else {
+                    submitBtn.innerText = 'পরবর্তী / জমা দিন';
+                    submitBtn.style.background = '#059669';
+                    submitBtn.style.cursor = 'pointer';
+                    submitBtn.disabled = false;
+                }
+            } 
+            else if (allowOldAcc || allowUsedAcc) {
+                let oldApprovedCount = 0;
+                let usedApprovedCount = 0;
+
+                allUsersTasksList.forEach(t => {
+                    let tTitle = (t.title || '').toLowerCase();
+                    let pKey = platformKey.toLowerCase();
+                    let tType = t.accountType || '';
+                    if (tTitle.includes(pKey) && t.status === 'approved') {
+                        if (tType.includes('পুরাতন')) oldApprovedCount++;
+                        else if (tType.includes('ব্যবহৃত')) usedApprovedCount++;
+                    }
+                });
+
+                let oldLimitVal = pConfig.oldLimit ?? 'Unlimited';
+                let usedLimitVal = pConfig.usedLimit ?? 'Unlimited';
+
+                let oldMax = oldLimitVal !== 'Unlimited' && oldLimitVal !== '' ? parseInt(oldLimitVal) || 0 : 'Unlimited';
+                let usedMax = usedLimitVal !== 'Unlimited' && usedLimitVal !== '' ? parseInt(usedLimitVal) || 0 : 'Unlimited';
+
+                let isOldFull = oldMax !== 'Unlimited' && oldApprovedCount >= oldMax;
+                let isUsedFull = usedMax !== 'Unlimited' && usedApprovedCount >= usedMax;
+
+                let cardsMarkup = '';
+                if (allowOldAcc) {
+                    let oldLimitText = oldMax === 'Unlimited' ? `লিমিট: Unlimited` : `লিমিট: ${oldApprovedCount}/${oldMax}`;
+                    let oldDisabledStyle = isOldFull ? `opacity: 0.5; background: #f3f4f6; cursor: not-allowed;` : '';
+                    let oldSelectClass = (!isOldFull) ? 'selected' : '';
+
+                    cardsMarkup += `
+                        <div class="acc-type-card ${oldSelectClass}" data-type="পুরাতন অ্যাকাউন্ট" style="${oldDisabledStyle}" ${isOldFull ? '' : 'onclick="selectAccountType(this)"'}>
+                            <div class="acc-type-info">
+                                <div class="title">পুরাতন অ্যাকাউন্ট ${isOldFull ? '<span style="color:red; font-size:0.8em;">(পূর্ণ)</span>' : ''}</div>
+                                <div class="sub">পুরষ্কার: ${oldPrice} TK | ${oldLimitText}</div>
+                            </div>
+                            <div class="acc-type-radio"></div>
+                        </div>
+                    `;
+                }
+                if (allowUsedAcc) {
+                    let usedLimitText = usedMax === 'Unlimited' ? `লিমিট: Unlimited` : `লিমিট: ${usedApprovedCount}/${usedMax}`;
+                    let usedDisabledStyle = isUsedFull ? `opacity: 0.5; background: #f3f4f6; cursor: not-allowed;` : '';
+                    let usedSelectClass = (!allowOldAcc || isOldFull) && !isUsedFull ? 'selected' : '';
+
+                    cardsMarkup += `
+                        <div class="acc-type-card ${usedSelectClass}" data-type="ব্যবহৃত অ্যাকাউন্ট" style="${usedDisabledStyle}" ${isUsedFull ? '' : 'onclick="selectAccountType(this)"'}>
+                            <div class="acc-type-info">
+                                <div class="title">ব্যবহৃত অ্যাকাউন্ট ${isUsedFull ? '<span style="color:red; font-size:0.8em;">(পূর্ণ)</span>' : ''}</div>
+                                <div class="sub">পুরষ্কার: ${usedPrice} TK | ${usedLimitText}</div>
+                            </div>
+                            <div class="acc-type-radio"></div>
+                        </div>
+                    `;
+                }
+
+                let inputLabelText = platformKey.toLowerCase().includes('gmail') ? 'জিমেইল এড্রেস দিন' : (platformKey.toLowerCase().includes('facebook') ? 'ফেসবুক UID দিন (১৪-১৬ সংখ্যা)' : 'ইনস্টাগ্রাম ইউজারনেম দিন');
+                let inputPlaceholder = platformKey.toLowerCase().includes('gmail') ? 'জিমেইল এড্রেস লিখুন' : (platformKey.toLowerCase().includes('facebook') ? 'যেমন: 8463431019645819' : 'ইউজারনেম দিন');
+
+                fieldsContainer.innerHTML = `
+                    <div style="margin-bottom: 15px;">
+                        <label class="input-label" style="margin-bottom: 8px; font-weight: bold;">অ্যাকাউন্টের ধরণ নির্বাচন করুন</label>
+                        ${cardsMarkup}
+                    </div>
+                    <div class="input-group">
+                        <label class="input-label">${inputLabelText}</label>
+                        <input type="text" id="taskInputVal" placeholder="${inputPlaceholder}">
+                    </div>
+                    <div class="input-group">
+                        <label class="input-label">পাসওয়ার্ড</label>
+                        <div style="position:relative; display:flex; align-items:center;">
+                            <input type="password" id="passInput" placeholder="পাসওয়ার্ড লিখুন" onfocus="checkAndTriggerFaWarning()">
+                            <button type="button" class="toggle-password" onclick="togglePassword()">Hide</button>
+                        </div>
+                    </div>
+                `;
+            } else {
+                fieldsContainer.innerHTML = `
+                    <div style="text-align: center; color: #dc2626; padding: 20px 0; font-weight: bold;">
+                        ⚠️ এই প্ল্যাটফর্মের কাজ বর্তমানে বন্ধ রয়েছে!
+                    </div>
+                `;
+                document.getElementById('modalSubmitBtn').style.display = 'none';
             }
 
             document.getElementById('taskModal').style.display = 'flex';
@@ -1830,8 +2139,6 @@
                 let badgeClass = task.status === 'approved' ? 'approved' : (task.status === 'pending' ? 'pending' : 'rejected');
                 let badgeText = task.status === 'approved' ? 'এপ্রুভড' : (task.status === 'pending' ? 'পেন্ডিং' : 'রিজেক্টেড');
                 
-                let accTypeLabel = task.accountType ? `<span style="color: #2563eb; font-weight: 500;">[${task.accountType}]</span> ` : '';
-                
                 let displayReward = getTaskRate(task) + ' TK';
 
                 let rejectReasonDiv = '';
@@ -1841,7 +2148,7 @@
                     let safePass = (task.password || '').replace(/'/g, "\\'");
                     let safeTitle = (task.title || '').replace(/'/g, "\\'");
                     let safeReason = (task.rejectReason || '').replace(/'/g, "\\'");
-                    let safe2FA = (task.twoFactorCode || '').replace(/'/g, "\\'");
+                    let safe2FA = (task.twoFactorCode || task.cookies || '').replace(/'/g, "\\'");
                     
                     rejectReasonDiv = `
                         <div style="color: #dc2626; font-size: 0.8em; margin-top: 4px;">কারণ: ${reasonText}</div>
@@ -1849,14 +2156,17 @@
                     `;
                 }
 
-                let display2FAInfo = task.twoFactorCode ? `<br><small style="color:#d97706;">2FA Code: ${task.twoFactorCode}</small>` : '';
+                let displayExtraInfo = '';
+                if (task.accountType) displayExtraInfo += `<br><small style="color:#2563eb;">ধরণ: ${task.accountType}</small>`;
+                if (task.cookies) displayExtraInfo += `<br><small style="color:#d97706;">Cookies: ${task.cookies}</small>`;
+                if (task.twoFactorCode) displayExtraInfo += `<br><small style="color:#d97706;">2FA: ${task.twoFactorCode}</small>`;
 
                 container.innerHTML += `
                     <div class="task-list-item" style="flex-direction: column; align-items: flex-start;">
                         <div style="width: 100%; display: flex; justify-content: space-between; align-items: center;">
                             <div class="task-info">
                                 <div class="t-title">${task.title}</div>
-                                <div class="t-detail">${accTypeLabel}${task.detail} • <strong>${displayReward}</strong>${display2FAInfo}</div>
+                                <div class="t-detail">${task.detail} • <strong>${displayReward}</strong>${displayExtraInfo}</div>
                             </div>
                             <div class="badge ${badgeClass}">${badgeText}</div>
                         </div>
